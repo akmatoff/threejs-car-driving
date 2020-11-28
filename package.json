@@ -1,0 +1,20 @@
+{
+  "name": "threejs-car-driving",
+  "version": "1.0.0",
+  "description": "Try",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "author": "akmatoff",
+  "license": "ISC",
+  "dependencies": {
+    "cannon": "^0.6.2",
+    "three": "^0.123.0",
+    "three-fbx-loader": "^1.0.3"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  }
+}
