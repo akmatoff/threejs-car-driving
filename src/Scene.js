@@ -5,12 +5,11 @@ import Car from './Car'
 export default class Scene {
     constructor() {
         this.init()
-        this.render()
         this.addEvents()
     }
 
     addEvents() {
-        window.addEventListener('resize', this.onWindowResize)
+        window.addEventListener('resize', () => this.onWindowResize)
     }
 
     init() {
@@ -21,7 +20,7 @@ export default class Scene {
         // Create the THREE Scene
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color(0xFFFFFF)
-        // this.scene.fog = new THREE.FogExp2(0xFFFFFF, 0.005)
+        this.scene.fog = new THREE.FogExp2(0xFFFFFF, 0.002)
         this.addObjects()
         this.setCamera()
         this.setRenderer()
@@ -43,20 +42,22 @@ export default class Scene {
 
     setCamera() {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000)
-        this.camera.lookAt(this.car.scene.position)
         this.camera.position.set(0, 5, 5)
     }
 
     setLights() {
+        // Ambient light
         this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 1)
         this.scene.add(this.ambientLight)
     }
 
     addObjects() {
+        // New instance of the car
         this.car = new Car(this.scene)
     }
 
     render() {
+        this.camera.lookAt(this.car.scene.position.x, this.car.scene.position.y, this.car.scene.position.z)
         this.renderer.render(this.scene, this.camera)
     }
 

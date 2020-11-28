@@ -1,8 +1,7 @@
 const FBXLoader = require('three-fbx-loader')
 
 export default class Car {
-    constructor(scene) {
-        
+    constructor(scene) {        
         this.scene = scene
 
         this.load()
@@ -10,16 +9,16 @@ export default class Car {
 
     load() {
         this.loader = new FBXLoader()
-        this.loader.load('assets/models/vehicle/SportCar20.fbx', (obj) => {
+        this.loader.load('../assets/models/vehicle/SportCar20.FBX', (obj) => {
             obj.traverse((n) => {
                 if (n.isMesh) {
                     n.castShadow = true
                     n.receiveShadow = true
                 }
             })
-            obj.position.set(0, 0, 0)
-            scene.add(obj)
-        })
+        
+            this.scene.add(obj)
+        }, null, (err) => console.log(err))
 
     }
 }
