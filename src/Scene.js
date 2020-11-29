@@ -19,7 +19,7 @@ export default class Scene {
 
         // Create the THREE Scene
         this.scene = new THREE.Scene()
-        this.scene.background = new THREE.Color(0xFFFFFF)
+        this.scene.background = new THREE.Color(0xFFFFFF)   
         this.scene.fog = new THREE.FogExp2(0xFFFFFF, 0.002)
         this.addObjects()
         this.setCamera()
@@ -42,7 +42,7 @@ export default class Scene {
 
     setCamera() {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000)
-        this.camera.position.set(0, 5, 5)
+        this.camera.position.set(0, 5, 15)
     }
 
     setLights() {

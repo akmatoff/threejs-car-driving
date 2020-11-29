@@ -1,4 +1,6 @@
-const FBXLoader = require('three-fbx-loader')
+const THREE = require('three')
+const OBJLoader = require('three-obj-loader')
+OBJLoader(THREE)
 
 export default class Car {
     constructor(scene) {        
@@ -8,15 +10,18 @@ export default class Car {
     }
 
     load() {
-        this.loader = new FBXLoader()
-        this.loader.load('../assets/models/vehicle/SportCar20.FBX', (obj) => {
+        const material = new THREE.MeshPhongMaterial({color: 0xFFcc00})
+        this.loader = new THREE.OBJLoader()
+        this.loader.load('../assets/models/vehicle_model.obj', (obj) => {
             obj.traverse((n) => {
                 if (n.isMesh) {
                     n.castShadow = true
                     n.receiveShadow = true
+                    n.material[0] = material
                 }
             })
-        
+    
+            console.log(obj)
             this.scene.add(obj)
         }, null, (err) => console.log(err))
 
