@@ -11,11 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "cannon": "^0.6.2",
-    "three": "^0.123.0",
-    "three-fbx-loader": "^1.0.3",
-    "three-obj-mtl-loader": "1.0.3"
+    "three": "^0.123.0"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "three-obj-mtl-loader": "^1.0.3"
   }
 }

@@ -57,7 +57,10 @@ export default class Scene {
     }
 
     render() {
-        this.camera.lookAt(this.car.scene.position.x, this.car.scene.position.y, this.car.scene.position.z)
+        this.camera.lookAt(
+            this.car.scene.position.x, 
+            this.car.scene.position.y, 
+            this.car.scene.position.z) 
         this.renderer.render(this.scene, this.camera)
     }
 

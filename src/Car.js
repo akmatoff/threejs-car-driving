@@ -1,6 +1,4 @@
-const THREE = require('three')
-const OBJLoader = require('three-obj-loader')
-OBJLoader(THREE)
+import {OBJLoader, MTLLoader} from 'three-obj-mtl-loader'
 
 export default class Car {
     constructor(scene) {        
@@ -10,20 +8,23 @@ export default class Car {
     }
 
     load() {
-        const material = new THREE.MeshPhongMaterial({color: 0xFFcc00})
-        this.loader = new THREE.OBJLoader()
-        this.loader.load('../assets/models/vehicle_model.obj', (obj) => {
-            obj.traverse((n) => {
-                if (n.isMesh) {
-                    n.castShadow = true
-                    n.receiveShadow = true
-                    n.material[0] = material
-                }
+        this.objLoader = new OBJLoader()
+        this.mtlLoader = new MTLLoader()
+        
+        this.mtlLoader.load('../assets/models/Muscle.mtl', (materials) => {
+            materials.preload()
+
+            this.objLoader.setMaterials(materials)
+            this.objLoader.load('../assets/models/Muscle.obj', (obj) => {
+                obj.traverse((n) => {
+                    if (n.isMesh) {
+                        n.castShadow = true
+                        n.receiveShadow = true
+                    }
+                })
+                this.scene.add(obj)
             })
-    
-            console.log(obj)
-            this.scene.add(obj)
-        }, null, (err) => console.log(err))
+        })
 
     }
 }
