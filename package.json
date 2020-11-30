@@ -10,11 +10,12 @@
   "author": "akmatoff",
   "license": "ISC",
   "dependencies": {
+    "assets": "^3.0.1",
     "cannon": "^0.6.2",
-    "three": "^0.123.0"
+    "three": "^0.123.0",
+    "three-obj-mtl-loader": "^1.0.3"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.4",
-    "three-obj-mtl-loader": "^1.0.3"
+    "parcel-bundler": "^1.12.4"
   }
 }

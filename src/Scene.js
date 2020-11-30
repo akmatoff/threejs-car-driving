@@ -20,11 +20,11 @@ export default class Scene {
         // Create the THREE Scene
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color(0xFFFFFF)   
-        this.scene.fog = new THREE.FogExp2(0xFFFFFF, 0.002)
-        this.addObjects()
+        this.scene.fog = new THREE.FogExp2(0xFFFFFF, 0.00025)
         this.setCamera()
-        this.setRenderer()
         this.setLights()    
+        this.addObjects()
+        this.setRenderer()
     }
 
     setRenderer() {
@@ -34,7 +34,10 @@ export default class Scene {
 
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.shadowMap.enabled = true
+        this.renderer.toneMapping = THREE.LinearToneMapping;
+        this.renderer.toneMappingExposure = 1.0;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.shadowMap.enabled = true;
         this.renderer.setAnimationLoop(() => {this.render()}) // Render 60 fps
 
         document.body.appendChild(this.renderer.domElement)
@@ -42,13 +45,24 @@ export default class Scene {
 
     setCamera() {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000)
-        this.camera.position.set(0, 5, 15)
+        this.camera.position.set(0, 10, 10)
     }
 
     setLights() {
-        // Ambient light
-        this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 1)
-        this.scene.add(this.ambientLight)
+        // Hemisphere light
+        this.hemiLight = new THREE.HemisphereLight(0xa0cad9, 0xf2dfc9, 1)
+        this.hemiLight.position.set(0, 10000, 50)
+        this.scene.add(this.hemiLight)
+
+        // Directional light
+        this.dirLight = new THREE.DirectionalLight(0xffe5c9, 0.3)
+        this.dirLight.position.set(0, 10000, -10000)
+        this.dirLight.castShadow = true;
+        this.dirLight.shadow.bias = -0.0001;
+        this.dirLight.shadow.darkness = 0.45;
+        this.dirLight.shadow.mapSize.width = 1024*4;
+        this.dirLight.shadow.mapSize.height = 1024*4;
+        this.scene.add(this.dirLight)
     }
 
     addObjects() {
@@ -58,9 +72,11 @@ export default class Scene {
 
     render() {
         this.camera.lookAt(
-            this.car.scene.position.x, 
+            this.car.scene.position.x , 
             this.car.scene.position.y, 
             this.car.scene.position.z) 
+
+        this.car.scene.rotation.y += 0.01
         this.renderer.render(this.scene, this.camera)
     }
 
