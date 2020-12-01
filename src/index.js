@@ -1,4 +1,4 @@
-import Scene from './Scene'
-import './style.css'
+import Scene from "./Scene";
+import "./style.css";
 
-new Scene()
+new Scene();

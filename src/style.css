@@ -1,12 +1,13 @@
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-hmtl, body {
-    margin: 0;
-    padding: 0;
+hmtl,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 canvas {
-    display: block;
+  display: block;
 }
