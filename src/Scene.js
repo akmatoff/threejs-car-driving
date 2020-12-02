@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import * as CANNON from "cannon";
 import OrbitControls from 'three-orbitcontrols'
 import { EffectComposer, RenderPass } from 'postprocessing';
-import Car from "./Car";
-import Ground from "./Ground";
+import PhysicsWorld from './PhysicsWorld';
+import Car from "./visualObjects/Car";
+import Ground from "./visualObjects/Ground";
 
 export default class Scene {
   constructor() {
@@ -16,15 +16,16 @@ export default class Scene {
   }
 
   init() {
-    // Initialise the physics world
-    this.world = new CANNON.World();
-    this.world.gravity.set(0, 0, -9.82);
+    this.physicsWorld = new PhysicsWorld();
 
+    // Clock
     this.clock = new THREE.Clock();
 
     // Create the THREE Scene
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0xb3d6ff);
     this.scene.fog = new THREE.FogExp2(0xb3d6ff, 0.009);
+
     this.setCamera();
     this.setLights();
     this.addObjects();
@@ -38,14 +39,13 @@ export default class Scene {
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setClearColor(0xb3d6ff);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.8;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
       this.render();
-      this.updatePhysics();
+      this.physicsWorld.updatePhysics();
     }); // Render loop
 
     // Controls
@@ -68,7 +68,7 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 2)
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.1)
     this.hemiLight.position.set(0, 30, 0)
     this.scene.add(this.hemiLight);
 
@@ -107,6 +107,13 @@ export default class Scene {
       this.car.scene.position.z
     );
 
+    // Set camera to follow the car
+    // this.camera.position.set(
+    //   this.car.scene.position.x,
+    //   this.car.scene.position.y + 7,
+    //   this.car.scene.position.z + 15
+    // )
+
     // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
       this.camera.position.x + 20,
@@ -114,12 +121,10 @@ export default class Scene {
       this.camera.position.z + 20
     )
 
+    this.controls.update()
+
     // this.car.scene.rotation.y += 0.01;
     this.composer.render(this.clock.getDelta());
-  }
-
-  updatePhysics() {
-    this.world.step(1 / 60)
   }
 
   onWindowResize() {
