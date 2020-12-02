@@ -1,6 +1,7 @@
 import { OBJLoader } from "three-obj-mtl-loader";
 import * as THREE from "three";
 
+// Obj files
 const vehicle = require("../assets/models/car.obj");
 const wheel = require("../assets/models/wheel.obj");
 
@@ -10,6 +11,10 @@ export default class Car {
 
     this.load();
     this.loadWheels();
+
+    // Group for car (body and wheels)
+    this.car = new THREE.Group()
+    this.scene.add(this.car)
   }
 
   load() {
@@ -18,13 +23,14 @@ export default class Car {
       obj.castShadow = true;
       obj.receiveShadow = true;
 
-      this.engineMat = new THREE.MeshPhongMaterial({ color: 0xcad7eb });
+      // Custom materials for the vehicle
+      this.engineMat = new THREE.MeshPhongMaterial({ color: 0x080808 });
       this.engineMat.shininess = 600;
-      this.bodyMat = new THREE.MeshPhongMaterial({ color: 0xdb9509 });
+      this.bodyMat = new THREE.MeshPhongMaterial({ color: 0xe06a10 });
       this.bodyMat.shininess = 500;
       this.windowMat = new THREE.MeshPhongMaterial({
-        color: 0x050505,
-        opacity: 0.96,
+        color: 0x080808,
+        opacity: 0.90,
         transparent: true
       });
 
@@ -41,8 +47,8 @@ export default class Car {
 
       obj.scale.set(0.03, 0.03, 0.03);
       obj.position.set(0, 0, 0);
-      console.log("Object", obj);
-      this.scene.add(obj);
+
+      this.car.add(obj);
     });
   }
 
@@ -51,9 +57,10 @@ export default class Car {
       this.objLoader.load(wheel, (obj) => {
         obj.castShadow = true;
         obj.receiveShadow = true;
-  
+        
+        // Custom materials for wheels
         this.tireMat = new THREE.MeshLambertMaterial({ color: 0x131414 });
-        this.rimMat = new THREE.MeshPhongMaterial({ color: 0x090909 });
+        this.rimMat = new THREE.MeshPhongMaterial({ color: 0xf7f3f0 });
         this.rimMat.shininess = 50;
   
         obj.traverse((n) => {
@@ -67,13 +74,11 @@ export default class Car {
         
         this.flip = false;
 
-        obj.scale.set(0.03, 0.03, 0.03);
-        obj.position.set(i % 2 == 0 ? 2.63 : -2.63, 1, i <= 2 ? 4 : -4.2);
-        i % 2 != 0 ? obj.rotation.z = Math.PI : 0
-
-        console.log(obj.position)
+        obj.scale.set(0.03, 0.03, 0.03); // make the wheels smaller
+        obj.position.set(i % 2 == 0 ? 2.63 : -2.63, 1, i <= 2 ? 4 : -4.2); // set the position of the wheel
+        i % 2 != 0 ? obj.rotation.z = Math.PI : 0 // Rotate the wheel if it's on other side
   
-        this.scene.add(obj);
+        this.car.add(obj);
       });
     }
     

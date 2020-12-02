@@ -12,9 +12,11 @@
   "dependencies": {
     "assets": "^3.0.1",
     "cannon": "^0.6.2",
+    "postprocessing": "^6.18.0",
     "three": "^0.123.0",
     "three-obj-mtl-loader": "^1.0.3",
-    "three-orbitcontrols": "^2.110.3"
+    "three-orbitcontrols": "^2.110.3",
+    "three-shader-fxaa": "^5.1.1"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.4"

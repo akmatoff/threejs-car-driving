@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
 import OrbitControls from 'three-orbitcontrols'
+import { EffectComposer, RenderPass } from 'postprocessing';
 import Car from "./Car";
 import Ground from "./Ground";
 
@@ -19,6 +20,8 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.gravity.set(0, 0, -9.82);
 
+    this.clock = new THREE.Clock();
+
     // Create the THREE Scene
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0xb3d6ff, 0.009);
@@ -36,14 +39,24 @@ export default class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setClearColor(0xb3d6ff);
-    this.renderer.toneMapping = THREE.ReinhardToneMapping;
-    this.renderer.toneMappingExposure = 2.3;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 0.8;
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
       this.render();
-    }); // Render 60 fps
+      this.updatePhysics();
+    }); // Render loop
 
+    // Controls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+
+    // Passes
+    this.renderPass = new RenderPass(this.scene, this.camera)
+
+    // Composer
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(this.renderPass);
 
     document.body.appendChild(this.renderer.domElement);
   }
@@ -55,11 +68,12 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1)
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 2)
+    this.hemiLight.position.set(0, 30, 0)
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 2);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 2.4);
     this.dirLight.position.set(0, 50, 0);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 2048;
@@ -67,11 +81,12 @@ export default class Scene {
     this.dirLight.shadow.bias = -0.0001;
     this.dirLight.shadow.camera.far = 900;
     this.dirLight.shadow.camera.near = 0.5;
-    this.dirLight.shadow.radius = 12;
+    this.dirLight.shadow.radius = 62;
     this.scene.add(this.dirLight);
 
+    // Spotlight
     this.spotlight = new THREE.SpotLight(0xff9940, 1.5)
-    this.spotlight.castShadow = false;
+    this.spotlight.castShadow = true;
     this.spotlight.shadow.radius = 8;
     this.spotlight.shadow.mapSize.width = 2048;
     this.spotlight.shadow.mapSize.heihgt = 2048;
@@ -85,12 +100,14 @@ export default class Scene {
   }
 
   render() {
+    // Look at the car position
     this.camera.lookAt(
       this.car.scene.position.x,
       this.car.scene.position.y,
       this.car.scene.position.z
     );
 
+    // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
       this.camera.position.x + 20,
       this.camera.position.y + 320,
@@ -98,7 +115,11 @@ export default class Scene {
     )
 
     // this.car.scene.rotation.y += 0.01;
-    this.renderer.render(this.scene, this.camera);
+    this.composer.render(this.clock.getDelta());
+  }
+
+  updatePhysics() {
+    this.world.step(1 / 60)
   }
 
   onWindowResize() {
