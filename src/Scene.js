@@ -1,9 +1,9 @@
 import * as THREE from "three";
+import * as CANNON from 'cannon'
 import OrbitControls from 'three-orbitcontrols'
 import { EffectComposer, RenderPass } from 'postprocessing';
-import PhysicsWorld from './PhysicsWorld';
-import Car from "./visualObjects/Car";
-import Ground from "./visualObjects/Ground";
+import Car from "./objects/Car";
+import Ground from "./objects/Ground";
 
 export default class Scene {
   constructor() {
@@ -16,7 +16,10 @@ export default class Scene {
   }
 
   init() {
-    this.physicsWorld = new PhysicsWorld();
+    // Initialise the physics world
+    this.world = new CANNON.World();
+    this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
+    this.world.gravity.set(0, -9.82, 0);
 
     // Clock
     this.clock = new THREE.Clock();
@@ -45,7 +48,7 @@ export default class Scene {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
       this.render();
-      this.physicsWorld.updatePhysics();
+      this.updatePhysics();
     }); // Render loop
 
     // Controls
@@ -96,7 +99,14 @@ export default class Scene {
   addObjects() {
     // New instance of the car
     this.car = new Car(this.scene);
-    this.ground = new Ground(this.scene);
+    this.car.addCarPhysics(this.world)
+
+    this.ground = new Ground(this.scene, this.world);
+  }
+
+  updatePhysics() {
+    this.world.step(1 / 60)
+    console.log(this.car.chassicBody.position)
   }
 
   render() {

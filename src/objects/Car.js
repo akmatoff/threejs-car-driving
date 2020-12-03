@@ -1,5 +1,6 @@
 import { OBJLoader } from "three-obj-mtl-loader";
 import * as THREE from "three";
+import * as CANNON from 'cannon'
 
 // Obj files
 const vehicle = require("../../assets/models/car_v-1.obj");
@@ -18,6 +19,7 @@ export default class Car {
   }
 
   load() {
+    // Object loader
     this.objLoader = new OBJLoader();
     this.objLoader.load(vehicle, (obj) => {
       obj.castShadow = true;
@@ -41,6 +43,7 @@ export default class Car {
       this.metalMat = new THREE.MeshPhongMaterial({ color: 0xdedede })
       this.cabinMat = new THREE.MeshLambertMaterial({ color: 0x090909 })
 
+      // Loop through nodes and assign materials
       obj.traverse((n) => {
         if (n.isMesh) {
           n.castShadow = true;
@@ -57,9 +60,11 @@ export default class Car {
         }
       });
 
+      // Position & scale
       obj.scale.set(0.03, 0.03, 0.03);
       obj.position.set(0, 2, 0);
 
+      // Add to the group
       this.car.add(obj);
     });
   }
@@ -92,5 +97,25 @@ export default class Car {
       });
     }
     
+  }
+
+  addCarPhysics(world) {
+    this.world = world
+    this.wheelMaterial = new CANNON.Material('wheelMaterial')
+    this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.world.groundMaterial, {
+      friction: 0.2
+    })
+
+    this.chassicShape = new CANNON.Box(new CANNON.Vec3(2, 1.5, 4))
+    this.chassicBody = new CANNON.Body({mass: 100.0})
+    this.chassicBody.addShape(this.chassicShape)
+    this.chassicBody.position.set(0, 2, 0)
+
+    this.raycastVehicle = new CANNON.RaycastVehicle({
+      chassisBody: this.chassicBody
+    })
+
+
+    this.raycastVehicle.addToWorld(this.world)
   }
 }
