@@ -7,11 +7,14 @@ const vehicle = require("../../assets/models/car_v-1.obj");
 const wheel = require("../../assets/models/wheel.obj");
 
 export default class Car {
-  constructor(scene) {
+  constructor(scene, world, {materials = []} = {}) {
     this.scene = scene;
+    this.world = world
+    this.materials = materials
 
     this.load();
     this.loadWheels();
+    this.addCarPhysics()
 
     // Group for car (body and wheels)
     this.car = new THREE.Group()
@@ -99,15 +102,12 @@ export default class Car {
     
   }
 
-  addCarPhysics(world) {
-    this.world = world
+  addCarPhysics() {
     this.wheelMaterial = new CANNON.Material('wheelMaterial')
-    this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.world.groundMaterial, {
-      friction: 0.2
-    })
-
+    this.carMaterial = new CANNON.Material('carMaterial')
+ 
     this.chassicShape = new CANNON.Box(new CANNON.Vec3(2, 1.5, 4))
-    this.chassicBody = new CANNON.Body({mass: 100.0})
+    this.chassicBody = new CANNON.Body({mass: 100.0, material: this.carMaterial})
     this.chassicBody.addShape(this.chassicShape)
     this.chassicBody.position.set(0, 2, 0)
 
@@ -115,7 +115,14 @@ export default class Car {
       chassisBody: this.chassicBody
     })
 
+    // Contact materials
+    this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
+      friction: 0.2
+    })
+    this.carGroundContactMaterial = new CANNON.ContactMaterial(this.carMaterial, this.materials[0], {friction: 0.1})
 
+    this.world.addContactMaterial(this.wheelGroundContactMaterial)
+    this.world.addContactMaterial(this.carGroundContactMaterial)
     this.raycastVehicle.addToWorld(this.world)
   }
 }

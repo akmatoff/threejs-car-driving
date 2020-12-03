@@ -19,7 +19,7 @@ export default class Scene {
     // Initialise the physics world
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
-    this.world.gravity.set(0, -9.82, 0);
+    this.world.gravity.set(0, 0-9.82, 0);
 
     // Clock
     this.clock = new THREE.Clock();
@@ -97,16 +97,16 @@ export default class Scene {
   }
 
   addObjects() {
-    // New instance of the car
-    this.car = new Car(this.scene);
-    this.car.addCarPhysics(this.world)
-
+    // Add ground to the scene and physics world
     this.ground = new Ground(this.scene, this.world);
+
+    // New instance of the car
+    this.car = new Car(this.scene, this.world, {materials: [this.ground.groundMaterial]});
   }
 
   updatePhysics() {
     this.world.step(1 / 60)
-    console.log(this.car.chassicBody.position)
+  
   }
 
   render() {
@@ -133,7 +133,6 @@ export default class Scene {
 
     this.controls.update()
 
-    // this.car.scene.rotation.y += 0.01;
     this.composer.render(this.clock.getDelta());
   }
 
