@@ -105,21 +105,31 @@ export default class Car {
   addCarPhysics() {
     this.wheelMaterial = new CANNON.Material('wheelMaterial')
     this.carMaterial = new CANNON.Material('carMaterial')
+
+    this.wheelBody = new CANNON.Body({mass: 5, angularVelocity: new CANNON.Vec3(0, 1.1, 0)})
  
-    this.chassicShape = new CANNON.Box(new CANNON.Vec3(2, 1.5, 4))
-    this.chassicBody = new CANNON.Body({mass: 100.0, material: this.carMaterial})
+    this.chassicShape = new CANNON.Box(new CANNON.Vec3(4.5, 2.7, 6.5))
+    this.chassicBody = new CANNON.Body({mass: 100, material: this.carMaterial})
+    // this.chassicBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 1), Math.PI / 4)
     this.chassicBody.addShape(this.chassicShape)
-    this.chassicBody.position.set(0, 2, 0)
+    this.chassicBody.position.set(0, 6, 0)
 
     this.raycastVehicle = new CANNON.RaycastVehicle({
-      chassisBody: this.chassicBody
+      chassisBody: this.chassicBody,
+      indexUpAxis: 2,
     })
 
     // Contact materials
     this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-      friction: 0.2
+      friction: 0.3,
+      restitution: 0,
+      contactEquationStiffness: 5000
     })
-    this.carGroundContactMaterial = new CANNON.ContactMaterial(this.carMaterial, this.materials[0], {friction: 0.1})
+
+    this.carGroundContactMaterial = new CANNON.ContactMaterial(this.carMaterial, this.materials[0], {
+      friction: 0.3,
+      restitution: 0.0,
+    })
 
     this.world.addContactMaterial(this.wheelGroundContactMaterial)
     this.world.addContactMaterial(this.carGroundContactMaterial)

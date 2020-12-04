@@ -15,7 +15,6 @@ export default class Ground {
     this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75 });
     this.groundGeo = new THREE.BoxBufferGeometry(15000, 5, 15000);
     this.ground = new THREE.Mesh(this.groundGeo, this.groundMat);
-    this.ground.position.y = -2.75;
     this.ground.receiveShadow = true;
     this.scene.add(this.ground);
   }
@@ -28,8 +27,16 @@ export default class Ground {
       mass: 0, 
       shape: this.groundShape,
       material: this.groundMaterial,
-      position: new CANNON.Vec3(0, -2.75, 0),
+      position: new CANNON.Vec3(0, 0, -2.75),
     })
+
+    this.groundBody.quaternion.setFromAxisAngle(
+      new CANNON.Vec3(1, 0, 0),
+      -Math.PI / 2
+    );
+
+    this.ground.position.copy(this.groundBody.position)
+    // this.ground.quaternion.copy(this.groundBody.quaternion)
 
     this.world.add(this.groundBody)
   }

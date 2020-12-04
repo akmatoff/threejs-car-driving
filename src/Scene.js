@@ -18,8 +18,17 @@ export default class Scene {
   init() {
     // Initialise the physics world
     this.world = new CANNON.World();
-    this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
-    this.world.gravity.set(0, 0-9.82, 0);
+    this.world.broadphase = new CANNON.SAPBroadphase(this.world);  // Change the collision detection method
+    this.world.gravity.set(0, -10, 0);
+
+    // Create a sphere
+    // this.sphereBody = new CANNON.Body({
+    //   mass: 5, // kg
+    //   position: new CANNON.Vec3(0, 10, 0), // m
+    //   shape: new CANNON.Sphere(1)
+    // });
+
+    // this.world.addBody(this.sphereBody);
 
     // Clock
     this.clock = new THREE.Clock();
@@ -48,7 +57,6 @@ export default class Scene {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
       this.render();
-      this.updatePhysics();
     }); // Render loop
 
     // Controls
@@ -105,23 +113,28 @@ export default class Scene {
   }
 
   updatePhysics() {
-    this.world.step(1 / 60)
-  
+    this.world.step(1 / 60, 0.035, 3)
+    // console.log(this.car.raycastVehicle.chassisBody.position)
+    // console.log(this.sphereBody.position)
+
+    this.car.car.position.copy(this.car.chassicBody.position)
+    this.car.car.quaternion.copy(this.car.chassicBody.quaternion)
   }
 
   render() {
+    this.updatePhysics();
     // Look at the car position
-    this.camera.lookAt(
-      this.car.scene.position.x,
-      this.car.scene.position.y,
-      this.car.scene.position.z
-    );
+    // this.camera.lookAt(
+    //   this.car.car.position.x ,
+    //   this.car.car.position.y,
+    //   this.car.car.position.z
+    // );
 
     // Set camera to follow the car
     // this.camera.position.set(
-    //   this.car.scene.position.x,
-    //   this.car.scene.position.y + 7,
-    //   this.car.scene.position.z + 15
+    //   this.car.car.position.x,
+    //   this.car.car.position.y + 5,
+    //   this.car.car.position.z + 15
     // )
 
     // Update the spotlight position and set it to camera's position
