@@ -1,7 +1,8 @@
 import * as THREE from "three";
-import * as CANNON from 'cannon'
-import OrbitControls from 'three-orbitcontrols'
-import { EffectComposer, RenderPass } from 'postprocessing';
+import * as CANNON from "cannon";
+import OrbitControls from "three-orbitcontrols";
+import { EffectComposer, RenderPass, ShaderPass } from "postprocessing";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import Car from "./objects/Car";
 import Ground from "./objects/Ground";
 
@@ -18,7 +19,7 @@ export default class Scene {
   init() {
     // Initialise the physics world
     this.world = new CANNON.World();
-    this.world.broadphase = new CANNON.SAPBroadphase(this.world);  // Change the collision detection method
+    this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -10, 0);
 
     // Create a sphere
@@ -60,27 +61,34 @@ export default class Scene {
     }); // Render loop
 
     // Controls
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     // Passes
-    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.renderPass = new RenderPass(this.scene, this.camera);
+    this.fxaaShaderPass = new ShaderPass(FXAAShader);
 
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderPass);
+    // this.composer.addPass(this.fxaaShaderPass);
 
     document.body.appendChild(this.renderer.domElement);
   }
 
   setCamera() {
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      10000
+    );
     this.camera.position.set(0, 5, 13);
   }
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.1)
-    this.hemiLight.position.set(0, 30, 0)
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.1);
+    this.hemiLight.position.set(0, 30, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
@@ -96,12 +104,12 @@ export default class Scene {
     this.scene.add(this.dirLight);
 
     // Spotlight
-    this.spotlight = new THREE.SpotLight(0xff9940, 1.5)
+    this.spotlight = new THREE.SpotLight(0xff9940, 1.5);
     this.spotlight.castShadow = true;
     this.spotlight.shadow.radius = 8;
     this.spotlight.shadow.mapSize.width = 2048;
     this.spotlight.shadow.mapSize.heihgt = 2048;
-    this.scene.add(this.spotlight)
+    this.scene.add(this.spotlight);
   }
 
   addObjects() {
@@ -109,16 +117,18 @@ export default class Scene {
     this.ground = new Ground(this.scene, this.world);
 
     // New instance of the car
-    this.car = new Car(this.scene, this.world, {materials: [this.ground.groundMaterial]});
+    this.car = new Car(this.scene, this.world, {
+      materials: [this.ground.groundMaterial]
+    });
   }
 
   updatePhysics() {
-    this.world.step(1 / 60, 0.035, 3)
+    this.world.step(1 / 60, 0.035, 3);
     // console.log(this.car.raycastVehicle.chassisBody.position)
     // console.log(this.sphereBody.position)
 
-    this.car.car.position.copy(this.car.chassicBody.position)
-    this.car.car.quaternion.copy(this.car.chassicBody.quaternion)
+    this.car.car.position.copy(this.car.chassicBody.position);
+    this.car.car.quaternion.copy(this.car.chassicBody.quaternion);
   }
 
   render() {
@@ -142,11 +152,11 @@ export default class Scene {
       this.camera.position.x + 20,
       this.camera.position.y + 320,
       this.camera.position.z + 20
-    )
+    );
 
-    this.controls.update()
+    this.controls.update();
 
-    this.composer.render(this.clock.getDelta());
+    this.composer.render();
   }
 
   onWindowResize() {
