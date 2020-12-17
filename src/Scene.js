@@ -98,12 +98,12 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.8);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.9);
     this.hemiLight.position.set(0, 30, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 2.6);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 2.8);
     this.dirLight.position.set(0, 60, 150);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 2048;
@@ -139,8 +139,8 @@ export default class Scene {
     // console.log(this.sphereBody.position)
     // console.log(this.car.wheelBodies[0].position)
 
-    this.car.car.position.copy(this.car.chassicBody.position);
-    this.car.car.quaternion.copy(this.car.chassicBody.quaternion);
+    this.car.updatePhysics()
+
   }
 
   render() {
