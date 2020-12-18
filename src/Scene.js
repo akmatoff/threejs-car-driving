@@ -132,6 +132,8 @@ export default class Scene {
     this.car = new Car(this.scene, this.world, {
       materials: [this.ground.groundMaterial]
     });
+
+    // this.car.wheelTest()
   }
 
   updatePhysics() {
@@ -141,7 +143,7 @@ export default class Scene {
     // console.log(this.car.wheelBodies[0].position)
 
     this.car.updatePhysics()
-
+    // this.car.wheelTestUpdate()
   }
 
   render() {

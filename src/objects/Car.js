@@ -13,16 +13,18 @@ export default class Car {
     this.materials = materials
     this.raycastVehicle;
 
-    this.load();
-    this.loadWheels();
+    this.wheelObjects = [];
+
+    this.testWheel = new THREE.Object3D()
 
     // Group for car (body and wheels)
     this.car = new THREE.Group()
-    this.wheelObjects = [];
-
+    
     this.scene.add(this.car)
 
-    this.addCarPhysics()
+    this.load();
+    this.loadWheels();
+    this.addCarPhysics()    
 
   }
 
@@ -98,8 +100,8 @@ export default class Car {
         });
 
         obj.scale.set(0.03, 0.03, 0.03); // make the wheels smaller
-        obj.position.set(i % 2 == 0 ? 2.63 : -2.63, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
-
+        obj.position.set(i % 2 == 0 ? 2.5 : -2.5, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
+        obj.position.copy(this.wheelBodies[i].position)
         
         i % 2 != 0 ? obj.rotation.z = Math.PI : 0 // Rotate the wheel if it's on other side
         
@@ -113,16 +115,26 @@ export default class Car {
   addCarPhysics() {
     this.wheelMaterial = new CANNON.Material('wheelMaterial')
     this.carMaterial = new CANNON.Material('carMaterial')
+
+    // Contact materials
+    this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
+      friction: 0.3,
+      restitution: 0,
+      contactEquationStiffness: 3000
+    })
+
+
+    this.world.addContactMaterial(this.wheelGroundContactMaterial)
  
-    this.chassicShape = new CANNON.Box(new CANNON.Vec3(4.5, 0.7, 8.3))
-    this.chassicBody = new CANNON.Body({mass: 100, material: this.carMaterial})
-    // this.chassicBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1), Math.PI / 2)
-    this.chassicBody.addShape(this.chassicShape)
-    this.chassicBody.position.set(0, 16, 0)
+    this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 2.3, 8.3))
+    this.chassisBody = new CANNON.Body({mass: 1500, material: this.carMaterial})
+    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1), Math.PI / 2)
+    this.chassisBody.addShape(this.chassisShape)
+    this.chassisBody.position.set(0, 3, 0)
 
     // Wheel options
     this.options = {
-      radius: 1,
+      radius: 0.7,
       directionLocal: new CANNON.Vec3(0, -1, 0),
       suspensionStiffness: 30,
       suspensionRestLength: 0.3,
@@ -131,23 +143,23 @@ export default class Car {
       dampingCompression: 4.4,
       maxSuspensionForce: 100000,
       rollInfluence:  0.01,
-      axleLocal: new CANNON.Vec3(1, 0, 0),
+      axleLocal: new CANNON.Vec3(-1, 0, 0),
       chassisConnectionPointLocal: new CANNON.Vec3(0, 0, 0),
       maxSuspensionTravel: 0.3,
-      customSlidingRotationalSpeed: -10,
-      useCustomSlidingRotationalSpeed: true,
+      customSlidingRotationalSpeed: -30,
+      useCustomSlidingRotationalSpeed: true
     };
 
     // Create the vehicle
     this.raycastVehicle = new CANNON.RaycastVehicle({
-      chassisBody: this.chassicBody,
+      chassisBody: this.chassisBody,
       indexRightAxis: 0,
       indexUpAxis: 1,
-      indexForwardAxis: 2 
+      indexForwardAxis: 2,
     })
 
     for (let i = 1; i <= 4; i++) {
-      this.options.chassisConnectionPointLocal.set(i % 2 == 0 ? 2.63 : -2.63, 1, i <= 2 ? 4.2 : -4.0)
+      this.options.chassisConnectionPointLocal.set(i % 2 == 0 ? 2.5 : -2.5, -1.5, i <= 2 ? 4.2 : -4.0)
       this.raycastVehicle.addWheel(this.options)
     }
 
@@ -157,17 +169,15 @@ export default class Car {
     this.wheelBodies = [];
 
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
-      var cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius / 2, 35);
+      var cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius / 2, 45);
       this.wheelBody = new CANNON.Body({
-        mass: 1, 
-        angularVelocity: new CANNON.Vec3(0, 0, 0), 
+        mass: 20, 
         material: this.wheelMaterial, 
-        position: new CANNON.Vec3(0, 0, 0),
       })
-      this.wheelBody.type = CANNON.Body.KINEMATIC;
  
       var q = new CANNON.Quaternion();
       q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2)
+      this.wheelBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2)
       this.wheelBody.addShape(cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
       this.world.addBody(this.wheelBody);
@@ -177,32 +187,13 @@ export default class Car {
     // Update wheels
     this.world.addEventListener('postStep', () => {
       for (var i = 0; i < this.raycastVehicle.wheelInfos.length; i++) {
-
           this.raycastVehicle.updateWheelTransform(i);
           var t = this.raycastVehicle.wheelInfos[i].worldTransform;
           var wheelBody = this.wheelBodies[i];
           wheelBody.position.copy(t.position);
-          wheelBody.position.y = 1;
           wheelBody.quaternion.copy(t.quaternion);
-
       }
     });
-
-
-    // Contact materials
-    this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-      friction: 0.3,
-      restitution: 0,
-      contactEquationStiffness: 1000
-    })
-
-    this.carGroundContactMaterial = new CANNON.ContactMaterial(this.carMaterial, this.materials[0], {
-      friction: 0.3,
-      restitution: 0.0,
-    })
-
-    this.world.addContactMaterial(this.wheelGroundContactMaterial)
-    this.world.addContactMaterial(this.carGroundContactMaterial)
 
 
     // Vehicle handler
@@ -216,6 +207,7 @@ export default class Car {
       brakeForce: this.brakeForce,
       maxSteerValue: this.maxSteerValue
     })
+
     document.onkeyup = () => this.handler({
       vehicle: this.raycastVehicle,
       maxForce: this.maxForce,
@@ -229,10 +221,10 @@ export default class Car {
     vehicle = null,
     maxForce = 0,
     brakeForce = 0,
-    maxSteerValue = 1
+    maxSteerValue = 0.7
   } = {}) {
     const e = window.event;
-    var up = (e.type == 'keyup');
+    var up = (e.type === 'keyup');
 
     if (!up && e.type !== 'keydown') {
       return;
@@ -280,19 +272,50 @@ export default class Car {
   updateWheels() {
     let i = 0;
     this.wheelObjects.forEach((wheel) => {
-      wheel.position.copy(this.wheelBodies[i].position)
-      wheel.quaternion.copy(this.raycastVehicle.wheelInfos[i].worldTransform.quaternion)
+      // wheel.position.copy(this.wheelBodies[i].position)
+      wheel.quaternion.copy(this.wheelBodies[i].quaternion)
       i++;
     })
   }
 
   updateCar() {
-    this.car.position.copy(this.raycastVehicle.chassisBody.position)
-    this.car.quaternion.copy(this.raycastVehicle.chassisBody.quaternion)
+   
+      this.car.position.copy(this.raycastVehicle.chassisBody.position)
+      this.car.quaternion.copy(this.raycastVehicle.chassisBody.quaternion)
+    
   }
 
   updatePhysics() {
     this.updateCar()
     this.updateWheels()
+  }
+
+
+
+  wheelTest() {
+    var radius = 3.73
+    var cylinderShape = new CANNON.Cylinder(radius, radius, radius, 45);
+    this.wheelBody = new CANNON.Body({
+      mass: 20, 
+      material: this.wheelMaterial, 
+    })
+
+    var q = new CANNON.Quaternion();
+    q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2)
+    this.wheelBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2)
+    this.wheelBody.addShape(cylinderShape, new CANNON.Vec3(), q);
+    this.wheelBody.position.y = 15;
+    this.world.addBody(this.wheelBody)
+
+    this.objLoader.load(wheel, (obj) => {
+      obj.scale.set(0.03, 0.03, 0.03)
+      this.scene.add(obj)
+      this.testWheel = obj;
+    })
+  }
+
+  wheelTestUpdate() {
+    this.testWheel.position.copy(this.wheelBody.position)
+    this.testWheel.quaternion.copy(this.wheelBody.quaternion)
   }
 }
