@@ -22,6 +22,7 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -10, 0);
+    this.world.defaultContactMaterial.friction = 0;
 
     // Create a sphere
     // this.sphereBody = new CANNON.Body({
@@ -176,7 +177,7 @@ export default class Scene {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.x = 1 / ( window.offsetWidth * pixelRatio );
-    this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.y = 1 / ( window.offsetHeight * pixelRatio );
+    // this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.x = 1 / ( window.offsetWidth * pixelRatio );
+    // this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.y = 1 / ( window.offsetHeight * pixelRatio );
   }
 }
