@@ -27,7 +27,7 @@ export default class Ground {
       mass: 0, 
       shape: this.groundShape,
       material: this.groundMaterial,
-      position: new CANNON.Vec3(0, 0, -2.75),
+      position: new CANNON.Vec3(0, -2, 0),
     })
 
     this.groundBody.quaternion.setFromAxisAngle(
@@ -36,7 +36,6 @@ export default class Ground {
     );
 
     this.ground.position.copy(this.groundBody.position)
-    // this.ground.quaternion.copy(this.groundBody.quaternion)
 
     this.world.add(this.groundBody)
   }

@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
 import OrbitControls from "three-orbitcontrols";
-import { EffectComposer, RenderPass, ShaderPass } from "postprocessing";
-import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
-import { CopyShader } from "three/examples/jsm/shaders/CopyShader";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { ConvolutionShader } from "three/examples/jsm/shaders/ConvolutionShader";
 import Car from "./objects/Car";
 import Ground from "./objects/Ground";
 
@@ -22,16 +23,6 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -10, 0);
-    this.world.defaultContactMaterial.friction = 0;
-
-    // Create a sphere
-    // this.sphereBody = new CANNON.Body({
-    //   mass: 5, // kg
-    //   position: new CANNON.Vec3(0, 10, 0), // m
-    //   shape: new CANNON.Sphere(1)
-    // });
-
-    // this.world.addBody(this.sphereBody);
 
     // Clock
     this.clock = new THREE.Clock();
@@ -67,22 +58,14 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.fxaaShaderPass = new ShaderPass(FXAAShader);
-    this.copyShaderPass = new ShaderPass(CopyShader);
-    
-    console.log('FXAA: ', this.fxaaShaderPass);
 
-    let pixelRatio = this.renderer.getPixelRatio();
-
-    this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.x = 1 / ( window.offsetWidth * pixelRatio );
-    this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.y = 1 / ( window.offsetHeight * pixelRatio );
+    this.convShaderPass = new ShaderPass(ConvolutionShader)
 
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.setSize(window.offsetWidth, window.offsetHeight);
     this.composer.addPass(this.renderPass);
-    // this.composer.addPass(this.fxaaShaderPass);
-    // this.composer.addPass(this.copyShaderPass);
+    // this.composer.addPass(this.convShaderPass);
 
     document.body.appendChild(this.renderer.domElement);
   }
@@ -139,11 +122,9 @@ export default class Scene {
   updatePhysics() {
     this.world.step(1 / 60, 0.035, 3);
     // console.log(this.car.raycastVehicle.chassisBody.position)
-    // console.log(this.sphereBody.position)
     // console.log(this.car.wheelBodies[0].position)
 
     this.car.updatePhysics()
-    // this.car.wheelTestUpdate()
   }
 
   render() {
@@ -171,15 +152,12 @@ export default class Scene {
 
     this.controls.update();
 
-    this.composer.render(new THREE.Clock().getDelta());
+    this.composer.render();
   }
 
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-    // this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.x = 1 / ( window.offsetWidth * pixelRatio );
-    // this.fxaaShaderPass.screen.material.uniforms[ 'resolution' ].value.y = 1 / ( window.offsetHeight * pixelRatio );
   }
 }
