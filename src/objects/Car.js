@@ -164,14 +164,14 @@ export default class Car {
     this.wheelBodies = [];
 
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
-      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius, 60);
+      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
       this.wheelBody = new CANNON.Body({
         mass: 1, 
         material: this.wheelMaterial, 
       })
 
       const q = new CANNON.Quaternion();
-			q.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+			q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
       
       this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
@@ -190,12 +190,9 @@ export default class Car {
       }
     });
 
-    this.wheelBodies[0].quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0,0 ), Math.PI / 2)
-
-    this.cylinderGeometry = new THREE.CylinderGeometry(this.raycastVehicle.wheelInfos[0].radius, this.raycastVehicle.wheelInfos[0].radius, this.raycastVehicle.wheelInfos[0].radius, 60)
+    this.cylinderGeometry = new THREE.CylinderGeometry(this.raycastVehicle.wheelInfos[0].radius, this.raycastVehicle.wheelInfos[0].radius, this.raycastVehicle.wheelInfos[0].radius, 40)
     this.cylinderMat = new THREE.MeshLambertMaterial({color: 0x333333})
     this.cylinder = new THREE.Mesh(this.cylinderGeometry, this.cylinderMat)
-    this.cylinder.position.set(5, 3, 0)
     this.cylinder.rotation.x = Math.PI / 2
     this.cylinder.rotation.z = Math.PI / 2
     this.scene.add(this.cylinder)
@@ -290,8 +287,11 @@ export default class Car {
   }
 
   updatePhysics() {
-    // this.cylinder.quaternion.copy(this.wheelBodies[0].shapes[0].quaternion)
-    this.cylinder.position.copy(this.wheelBodies[0].position)
+    this.cylinder.position.set(
+      this.wheelBodies[0].position.x + 0.1,
+      this.wheelBodies[0].position.y + 0.3,
+      this.wheelBodies[0].position.z
+      )
 
     // console.log(this.wheelBodies[0])
 
