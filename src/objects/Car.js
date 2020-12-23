@@ -1,4 +1,4 @@
-import { OBJLoader } from "three-obj-mtl-loader";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import * as THREE from "three";
 import * as CANNON from 'cannon'
 
@@ -166,7 +166,7 @@ export default class Car {
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
       this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
       this.wheelBody = new CANNON.Body({
-        mass: 1, 
+        mass: 5, 
         material: this.wheelMaterial, 
       })
 
@@ -195,7 +195,7 @@ export default class Car {
     this.cylinder = new THREE.Mesh(this.cylinderGeometry, this.cylinderMat)
     this.cylinder.rotation.x = Math.PI / 2
     this.cylinder.rotation.z = Math.PI / 2
-    this.scene.add(this.cylinder)
+    // this.scene.add(this.cylinder)
 
     // Vehicle handler
     this.maxSteerValue = 0.7;

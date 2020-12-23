@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
-import OrbitControls from "three-orbitcontrols";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
