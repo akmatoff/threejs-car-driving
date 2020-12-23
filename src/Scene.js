@@ -1,10 +1,14 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
+import { ColorCorrectionShader } from "three/examples/jsm/shaders/ColorCorrectionShader";
+import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader";
+import { BrightnessContrastShader } from "three/examples/jsm/shaders/BrightnessContrastShader";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-import { ConvolutionShader } from "three/examples/jsm/shaders/ConvolutionShader";
 import Car from "./objects/Car";
 import Ground from "./objects/Ground";
 
@@ -58,14 +62,27 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 1.1, 0.5)
 
-    this.convShaderPass = new ShaderPass(ConvolutionShader)
+    this.fxaaPass = new ShaderPass(FXAAShader);
 
+    const pixelRatio = this.renderer.getPixelRatio();
+
+    this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+    this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+
+    this.ccsPass = new ShaderPass(ColorCorrectionShader);
+    this.gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+    this.bcPass = new ShaderPass(BrightnessContrastShader);
+    
     // Composer
     this.composer = new EffectComposer(this.renderer);
-    this.composer.setSize(window.offsetWidth, window.offsetHeight);
     this.composer.addPass(this.renderPass);
-    // this.composer.addPass(this.convShaderPass);
+    this.composer.addPass(this.gammaCorrectionPass);
+    this.composer.addPass(this.ccsPass);
+    this.composer.addPass(this.unrealBloomPass);
+    this.composer.addPass(this.fxaaPass);
+    this.composer.addPass(this.bcPass);
 
     document.body.appendChild(this.renderer.domElement);
   }

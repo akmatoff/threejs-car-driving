@@ -166,7 +166,7 @@ export default class Car {
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
       this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
       this.wheelBody = new CANNON.Body({
-        mass: 5, 
+        mass: 1, 
         material: this.wheelMaterial, 
       })
 
