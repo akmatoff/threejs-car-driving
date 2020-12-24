@@ -3,10 +3,9 @@ import * as CANNON from "cannon";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
-import { ColorCorrectionShader } from "three/examples/jsm/shaders/ColorCorrectionShader";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader";
-import { BrightnessContrastShader } from "three/examples/jsm/shaders/BrightnessContrastShader";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import Car from "./objects/Car";
@@ -62,7 +61,8 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.16, 1.0, 0.5)
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.1, 0.3)
+    this.smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
 
     this.fxaaPass = new ShaderPass(FXAAShader);
 
@@ -71,18 +71,15 @@ export default class Scene {
     this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
     this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 
-    this.ccsPass = new ShaderPass(ColorCorrectionShader);
     this.gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
-    this.bcPass = new ShaderPass(BrightnessContrastShader);
-    
+
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderPass);
     this.composer.addPass(this.gammaCorrectionPass);
-    this.composer.addPass(this.ccsPass);
     this.composer.addPass(this.unrealBloomPass);
+    this.composer.addPass(this.smaaPass);
     this.composer.addPass(this.fxaaPass);
-    this.composer.addPass(this.bcPass);
 
     document.body.appendChild(this.renderer.domElement);
   }
@@ -138,8 +135,6 @@ export default class Scene {
 
   updatePhysics() {
     this.world.step(1 / 60, 0.035, 3);
-    // console.log(this.car.raycastVehicle.chassisBody.position)
-    // console.log(this.car.wheelBodies[0].position)
 
     this.car.updatePhysics()
   }
