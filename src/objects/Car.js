@@ -101,7 +101,7 @@ export default class Car {
         // obj.position.set(i % 2 == 0 ? 2.5 : -2.5, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
         // obj.position.copy(this.wheelBodies[i].position)
 
-        i % 2 != 0 ? obj.rotation.z = Math.PI : 0 // Rotate the wheel if it's on other side
+        i % 2 != 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
         
         this.wheelObjects.push(obj);
         this.car.add(obj);
@@ -155,7 +155,7 @@ export default class Car {
     })
 
     for (let i = 1; i <= 4; i++) {
-      this.options.chassisConnectionPointLocal.set(i % 2 == 0 ? 2.5 : -2.5, 1, i <= 2 ? 4.2 : -4.0)
+      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.5 : -2.5, 1, i <= 2 ? 4.2 : -4.0)
       this.raycastVehicle.addWheel(this.options)
     }
 
@@ -275,6 +275,7 @@ export default class Car {
     this.wheelObjects.forEach((wheel) => {
       wheel.position.copy(this.wheelBodies[i].position)
       wheel.quaternion.copy(this.wheelBodies[i].quaternion)
+      if (i === 0 || i === 2) wheel.rotation.z = Math.PI
       i++;
     })
   }

@@ -62,7 +62,7 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 1.1, 0.5)
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.16, 1.0, 0.5)
 
     this.fxaaPass = new ShaderPass(FXAAShader);
 
