@@ -11,12 +11,19 @@ export default class Ground {
   }
 
   init() {
-    // Create ground visuals
-    this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75 });
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+
+    // Create ground visuals 
     this.groundGeo = new THREE.BoxBufferGeometry(15000, 5, 15000);
-    this.ground = new THREE.Mesh(this.groundGeo, this.groundMat);
-    this.ground.receiveShadow = true;
-    this.scene.add(this.ground);
+    this.groundCamera = new THREE.CubeCamera(0.1, 5000, cubeRenderTarget)
+    this.scene.add(this.groundCamera)
+
+    this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75, envMap: this.groundCamera.renderTarget.texture, reflectivity: 0.3 });
+    this.ground = new THREE.Mesh(this.groundGeo, this.groundMat)
+    this.groundCamera.position.copy(this.ground.position)
+    this.ground.receiveShadow = true
+    
+    this.scene.add(this.ground)
   }
 
   addGroundPhysics() {

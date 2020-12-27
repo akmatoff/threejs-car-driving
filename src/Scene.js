@@ -162,6 +162,10 @@ export default class Scene {
       this.camera.position.z + 20
     );
 
+    if (this.camera.position.y < 2) this.camera.position.y = 2
+
+    this.ground.groundCamera.update(this.renderer, this.scene)
+
     this.controls.update();
 
     this.composer.render();

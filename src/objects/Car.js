@@ -44,7 +44,7 @@ export default class Car {
         transparent: true,
         shininess: 100,
         reflectivity: 1,
-        envMap: this.engineMat.color,
+        envMap: this.scene.background,
         combine: THREE.MixOperation
       });
       this.metalMat = new THREE.MeshPhongMaterial({ color: 0xdedede })
