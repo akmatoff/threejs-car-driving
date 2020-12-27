@@ -26,6 +26,12 @@ export default class Car {
   }
 
   load() {
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+
+    this.carCamera = new THREE.CubeCamera(0.5, 5000, cubeRenderTarget)
+
+    this.scene.add(this.carCamera)
+
     // Object loader
     this.objLoader = new OBJLoader();
     this.objLoader.load(vehicle, (obj) => {
@@ -35,11 +41,12 @@ export default class Car {
       // Custom materials for the vehicle
       this.engineMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
       this.engineMat.shininess = 600;
-      this.bodyMat = new THREE.MeshPhongMaterial({ color: 0xe04000 });
+      this.bodyMat = new THREE.MeshPhongMaterial({ color: 0xe04000, envMap: this.carCamera.renderTarget.texture, reflectivity: 1 });
       this.bodyMat.shininess = 500;
       this.bodyMat.combine = 10;
       this.windowMat = new THREE.MeshPhongMaterial({
         color: 0x090909,
+        envMap: this.carCamera.renderTarget.texture,
         opacity: 0.80,
         transparent: true,
         shininess: 100,
@@ -290,13 +297,13 @@ export default class Car {
   }
 
   updateCar() {
-   
       this.car.position.copy(this.chassisBody.position)
       this.car.quaternion.copy(this.chassisBody.quaternion)
-    
+      this.carCamera.position.copy(this.car.position)
   }
 
   updatePhysics() {
+
     this.cylinder.position.set(
       this.wheelBodies[0].position.x + 0.1,
       this.wheelBodies[0].position.y + 0.3,
