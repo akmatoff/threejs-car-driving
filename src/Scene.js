@@ -14,11 +14,10 @@ import Ground from "./objects/Ground";
 export default class Scene {
   constructor() {
     this.init();
-    this.addEvents();
   }
 
   addEvents() {
-    window.addEventListener("resize", () => this.onWindowResize);
+    window.addEventListener("resize", this.onWindowResize);
   }
 
   init() {
@@ -26,6 +25,8 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -10, 0);
+    // this.world.defaultContactMaterial.friction = 0;
+    console.log(this.world.defaultContactMaterial)
 
     // Clock
     this.clock = new THREE.Clock();
@@ -39,6 +40,7 @@ export default class Scene {
     this.setLights();
     this.addObjects();
     this.setRenderer();
+    this.addEvents();
   }
 
   setRenderer() {
@@ -142,19 +144,6 @@ export default class Scene {
 
   render() {
     this.updatePhysics();
-    // Look at the car position
-    // this.camera.lookAt(
-    //   this.car.car.position.x ,
-    //   this.car.car.position.y,
-    //   this.car.car.position.z
-    // );
-
-    // Set camera to follow the car
-    // this.camera.position.set(
-    //   this.car.car.position.x,
-    //   this.car.car.position.y + 5,
-    //   this.car.car.position.z + 15
-    // )
 
     // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
@@ -172,12 +161,13 @@ export default class Scene {
 
     this.controls.update();
 
-    this.composer.render();
+    this.composer.render(this.clock.getDelta());
   }
 
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    console.log('resize')
   }
 }

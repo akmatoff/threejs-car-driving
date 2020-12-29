@@ -16,8 +16,12 @@ export default class Ground {
     // Create ground visuals 
     this.groundGeo = new THREE.BoxBufferGeometry(15000, 5, 15000);
     this.groundCamera = new THREE.CubeCamera(0.1, 500, cubeRenderTarget);
-    
-    this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75, reflectivity: 0.5 });
+    this.groundCamera.renderTarget.texture.width = window.innerWidth * window.devicePixelRatio;
+    this.groundCamera.renderTarget.texture.height = window.innerHeight * window.devicePixelRatio;
+    this.groundMat = new THREE.MeshPhongMaterial({ 
+      color: 0x666c75, 
+      // envMap: this.groundCamera.renderTarget.texture, 
+      reflectivity: 0.5 });
     this.ground = new THREE.Mesh(this.groundGeo, this.groundMat)
     this.groundCamera.position.copy(this.ground.position)
     this.scene.add(this.groundCamera)
@@ -30,6 +34,7 @@ export default class Ground {
   addGroundPhysics() {
     // Create ground plane physics
     this.groundMaterial = new CANNON.Material('groundMaterial')
+
     this.groundShape = new CANNON.Plane()
     this.groundBody = new CANNON.Body({
       mass: 0, 

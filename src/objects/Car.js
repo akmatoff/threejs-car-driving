@@ -29,6 +29,7 @@ export default class Car {
     const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
 
     this.carCamera = new THREE.CubeCamera(0.5, 5000, cubeRenderTarget)
+    this.carCamera.scale.set(0.03, 0.03, 0.03)
 
     this.scene.add(this.carCamera)
 
@@ -41,7 +42,10 @@ export default class Car {
       // Custom materials for the vehicle
       this.engineMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
       this.engineMat.shininess = 600;
-      this.bodyMat = new THREE.MeshPhongMaterial({ color: 0xe04000, envMap: this.carCamera.renderTarget.texture, reflectivity: 1 });
+      this.bodyMat = new THREE.MeshPhongMaterial({ 
+        color: 0xe04000, 
+        // envMap: this.carCamera.renderTarget.texture, 
+        reflectivity: 1 });
       this.bodyMat.shininess = 500;
       this.bodyMat.combine = 10;
       this.windowMat = new THREE.MeshPhongMaterial({
@@ -93,7 +97,7 @@ export default class Car {
         this.tireMat = new THREE.MeshLambertMaterial({ color: 0x131414 });
         this.rimMat = new THREE.MeshPhongMaterial({ color: 0xdedede });
         this.rimMat.shininess = 50;
-  
+        
         obj.traverse((n) => {
           if (n.isMesh) {
             n.castShadow = true;
@@ -116,8 +120,7 @@ export default class Car {
   }
 
   addCarPhysics() {
-    this.wheelMaterial = new CANNON.Material('wheelMaterial')
-    this.carMaterial = new CANNON.Material('carMaterial')
+    this.wheelMaterial = new CANNON.Material('wheelMaterial');
 
     // Contact materials
     this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
@@ -126,12 +129,14 @@ export default class Car {
       contactEquationStiffness: 1000
     })
 
+    console.log(this.wheelMaterial)
+
     this.world.addContactMaterial(this.wheelGroundContactMaterial)
  
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 2.3, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 300, material: this.carMaterial})
+    this.chassisBody = new CANNON.Body({mass: 300})
     this.chassisBody.addShape(this.chassisShape)
-    this.chassisBody.position.set(0, 3, 0)
+    this.chassisBody.position.set(0, 6, 0)
     // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 3);
     this.chassisBody.angularVelocity.set(0, 0, 0);
 
@@ -162,7 +167,7 @@ export default class Car {
     })
 
     for (let i = 1; i <= 4; i++) {
-      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.5 : -2.5, 1, i <= 2 ? 4.2 : -4.0)
+      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.4 : -2.4, 1, i <= 2 ? 4.2 : -4.0)
       this.raycastVehicle.addWheel(this.options)
     }
 
@@ -173,18 +178,15 @@ export default class Car {
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
       this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
       this.wheelBody = new CANNON.Body({
-        mass: 1, 
+        mass: 10, 
         material: this.wheelMaterial,
-        // type: CANNON.Body.KINEMATIC,
-        collisionFilterGroup: 1
       })
       
 
       const q = new CANNON.Quaternion();
-			q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
-			q.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+			q.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 2);
       
-      this.wheelBody.addShape(this.cylinderShape, this.wheelBody.position, q);
+      this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
       this.world.addBody(this.wheelBody);
 
@@ -251,8 +253,6 @@ export default class Car {
     vehicle.setBrake(0, 1);
     vehicle.setBrake(0, 2);
     vehicle.setBrake(0, 3);
-
-
 
     switch (e.keyCode) {
       
