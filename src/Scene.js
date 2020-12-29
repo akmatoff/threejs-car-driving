@@ -32,8 +32,8 @@ export default class Scene {
 
     // Create the THREE Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xb3d6ff);
-    this.scene.fog = new THREE.FogExp2(0xb3d6ff, 0.01);
+    this.scene.background = new THREE.Color(0x6c9bd9);
+    this.scene.fog = new THREE.FogExp2(0x6c9bd9, 0.004);
 
     this.setCamera();
     this.setLights();
@@ -49,7 +49,7 @@ export default class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.7;
+    this.renderer.toneMappingExposure = 0.42;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
@@ -96,13 +96,13 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.9);
-    this.hemiLight.position.set(0, 30, 0);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.2);
+    this.hemiLight.position.set(0, 1, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 2.8);
-    this.dirLight.position.set(0, 60, 150);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 3.2);
+    this.dirLight.position.set(100, 100, 100);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 2048;
     this.dirLight.shadow.mapSize.height = 2048;
@@ -113,7 +113,9 @@ export default class Scene {
     this.scene.add(this.dirLight);
 
     // Spotlight
-    this.spotlight = new THREE.SpotLight(0xff9940, 1.5);
+    this.spotlight = new THREE.SpotLight(0xff9940, 0);
+    this.spotlight.power = 5
+    this.spotlight.penumbra = 0.8
     this.spotlight.castShadow = true;
     this.spotlight.shadow.radius = 8;
     this.spotlight.shadow.mapSize.width = 2048;
@@ -130,7 +132,6 @@ export default class Scene {
       materials: [this.ground.groundMaterial]
     });
 
-    // this.car.wheelTest()
   }
 
   updatePhysics() {
@@ -157,10 +158,12 @@ export default class Scene {
 
     // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
-      this.camera.position.x + 20,
-      this.camera.position.y + 220,
-      this.camera.position.z + 20
+      this.camera.position.x + 5,
+      this.camera.position.y + 5,
+      this.camera.position.z + 5
     );
+
+    this.spotlight.quaternion.copy(this.camera.quaternion)
 
     if (this.camera.position.y < 2) this.camera.position.y = 2
 

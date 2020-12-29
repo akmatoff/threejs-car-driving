@@ -129,7 +129,7 @@ export default class Car {
     this.world.addContactMaterial(this.wheelGroundContactMaterial)
  
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 2.3, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 150, material: this.carMaterial})
+    this.chassisBody = new CANNON.Body({mass: 300, material: this.carMaterial})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position.set(0, 3, 0)
     // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 3);
@@ -174,15 +174,17 @@ export default class Car {
       this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
       this.wheelBody = new CANNON.Body({
         mass: 1, 
-        material: this.wheelMaterial, 
+        material: this.wheelMaterial,
+        // type: CANNON.Body.KINEMATIC,
+        collisionFilterGroup: 1
       })
-
+      
 
       const q = new CANNON.Quaternion();
-			q.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), -Math.PI / 2);
+			q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
 			q.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
       
-      this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
+      this.wheelBody.addShape(this.cylinderShape, this.wheelBody.position, q);
       this.wheelBodies.push(this.wheelBody);
       this.world.addBody(this.wheelBody);
 
@@ -305,8 +307,8 @@ export default class Car {
   updatePhysics() {
 
     this.cylinder.position.set(
-      this.wheelBodies[0].position.x + 0.1,
-      this.wheelBodies[0].position.y + 0.3,
+      this.wheelBodies[0].position.x + 10,
+      this.wheelBodies[0].position.y + 0,
       this.wheelBodies[0].position.z
       )
 

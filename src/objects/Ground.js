@@ -15,12 +15,13 @@ export default class Ground {
 
     // Create ground visuals 
     this.groundGeo = new THREE.BoxBufferGeometry(15000, 5, 15000);
-    this.groundCamera = new THREE.CubeCamera(0.1, 5000, cubeRenderTarget)
-    this.scene.add(this.groundCamera)
-
-    this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75, envMap: this.groundCamera.renderTarget.texture, reflectivity: 0.3 });
+    this.groundCamera = new THREE.CubeCamera(0.1, 500, cubeRenderTarget);
+    
+    this.groundMat = new THREE.MeshPhongMaterial({ color: 0x666c75, reflectivity: 0.5 });
     this.ground = new THREE.Mesh(this.groundGeo, this.groundMat)
     this.groundCamera.position.copy(this.ground.position)
+    this.scene.add(this.groundCamera)
+    
     this.ground.receiveShadow = true
     
     this.scene.add(this.ground)
