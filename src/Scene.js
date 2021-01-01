@@ -25,7 +25,7 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -10, 0);
-    // this.world.defaultContactMaterial.friction = 0;
+    this.world.defaultContactMaterial.friction = 0;
     console.log(this.world.defaultContactMaterial)
 
     // Clock
