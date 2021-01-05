@@ -5,6 +5,7 @@ import * as CANNON from 'cannon'
 // Obj files
 const vehicle = require("../../assets/models/car_v-1.obj");
 const wheel = require("../../assets/models/wheel.obj");
+const wheelRotated = require("../../assets/models/wheel_rotated.obj");
 
 export default class Car {
   constructor(scene, world, {materials = []} = {}) {
@@ -91,7 +92,10 @@ export default class Car {
 
   loadWheels() {
     for (let i = 0; i < 4; i++) {
-      this.objLoader.load(wheel, (obj) => {
+      let w = i <= 1 ? wheel : wheelRotated
+
+      this.objLoader.load(w, (obj) => {
+
         obj.castShadow = true;
         obj.receiveShadow = true;
         
@@ -112,9 +116,10 @@ export default class Car {
         obj.scale.set(0.03, 0.03, 0.03); // make the wheels smaller
         // obj.position.set(i % 2 == 0 ? 2.5 : -2.5, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
         // obj.position.copy(this.wheelBodies[i].position)
-
         // i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
         
+        console.log(obj)
+
         this.wheelObjects.push(obj);
         this.car.add(obj);
       });
@@ -128,7 +133,7 @@ export default class Car {
 
     // Contact materials
     this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-      friction: 0.1,
+      friction: 0.3,
       restitution: 0,
       contactEquationStiffness: 10000
     })
@@ -174,8 +179,8 @@ export default class Car {
       indexForwardAxis: 2,
     })
 
-    for (let i = 1; i <= 4; i++) {
-      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.4 : -2.4, -0.1, i <= 2 ? 4.2 : -4.0)
+    for (let i = 0; i < 4; i++) {
+      this.options.chassisConnectionPointLocal.set(i === 0 || i === 1 ? 2.4 : -2.4, -0.1, i === 0 || i === 2 ? 4.2 : -4.0)
       this.raycastVehicle.addWheel(this.options)
     }
 
@@ -186,7 +191,7 @@ export default class Car {
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
       this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 60);
       this.wheelBody = new CANNON.Body({
-        mass: 0, 
+        mass: 1, 
         material: this.wheelMaterial,
       })
 
@@ -211,8 +216,8 @@ export default class Car {
 
     // Vehicle handler
     this.maxSteerValue = 0.4;
-    this.maxForce = 1300;
-    this.brakeForce = 100;
+    this.maxForce = 1400;
+    this.brakeForce = 120;
 
     document.onkeydown = () => this.handler()
 
@@ -252,13 +257,13 @@ export default class Car {
         break;
 
       case 68: // D
-        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 2);
         this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 3);
+        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 1);
         break;
   
       case 65: // A
-        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 2);
         this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 3);
+        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 1);
         break;
 
     }
