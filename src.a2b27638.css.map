@@ -1,1 +1,0 @@
-{"version":3,"sources":["src/style.css"],"names":[],"mappings":"AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA","file":"src.a2b27638.css","sourceRoot":"..","sourcesContent":["* {\r\n  box-sizing: border-box;\r\n}\r\n\r\nhmtl,\r\nbody {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\ncanvas {\r\n  display: block;\r\n}\r\n"]}
