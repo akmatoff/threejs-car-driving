@@ -16,6 +16,7 @@ export default class Car {
 
     // Group for car (body and wheels)
     this.car = new THREE.Group()
+    this.carBody = new THREE.Object3D()
     
     this.scene.add(this.car)
 
@@ -84,6 +85,7 @@ export default class Car {
 
       // Add to the group
       this.car.add(obj);
+      this.carBody = obj;
     });
   }
 
@@ -111,7 +113,7 @@ export default class Car {
         // obj.position.set(i % 2 == 0 ? 2.5 : -2.5, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
         // obj.position.copy(this.wheelBodies[i].position)
 
-        i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
+        // i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
         
         this.wheelObjects.push(obj);
         this.car.add(obj);
@@ -121,30 +123,37 @@ export default class Car {
 
   addCarPhysics() {
     this.wheelMaterial = new CANNON.Material('wheelMaterial');
-    // this.wheelMaterial.friction = 0.3
+
+    this.bodyMaterial = new CANNON.Material('bodyMaterial')
 
     // Contact materials
     this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-      friction: 0.35,
+      friction: 0.3,
+      restitution: 0,
+      contactEquationStiffness: 10000
+    })
+
+    this.bodyGroundContactMaterial = new CANNON.ContactMaterial(this.bodyMaterial, this.materials[0], {
+      friction: 0.3,
       restitution: 0,
       contactEquationStiffness: 10000
     })
 
     this.world.addContactMaterial(this.wheelGroundContactMaterial)
- 
-    this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 2.3, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 200})
+    this.world.addContactMaterial(this.bodyGroundContactMaterial)
+
+    this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3))
+    this.chassisBody = new CANNON.Body({mass: 1200})
     this.chassisBody.addShape(this.chassisShape)
-    this.chassisBody.position.set(0, 6, 0)
-    // this.chassisBody.angularVelocity.set(0, 0, 1);
+    this.chassisBody.position.set(0, 6, -100)
+    this.chassisBody.angularVelocity.set(-0.2, 0, 0);
 
     // Wheel options
     this.options = {
-      radius: 1.22,
+      radius: 3.75,
       directionLocal: new CANNON.Vec3(0, -1, 0),
-      suspensionStiffness: 95,
-      suspensionRestLength: 0.25,
-      // suspensionLength: 1,
+      suspensionStiffness: 30,
+      suspensionRestLength: 0.87,
       frictionSlip: 5,
       dampingRelaxation: 2.3,
       dampingCompression: 4.4,
@@ -166,7 +175,7 @@ export default class Car {
     })
 
     for (let i = 1; i <= 4; i++) {
-      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.4 : -2.4, 1, i <= 2 ? 4.2 : -4.0)
+      this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.4 : -2.4, -0.1, i <= 2 ? 4.2 : -4.0)
       this.raycastVehicle.addWheel(this.options)
     }
 
@@ -175,62 +184,43 @@ export default class Car {
     this.wheelBodies = [];
 
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
-      // this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 40);
+      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 20);
       this.wheelBody = new CANNON.Body({
         mass: 1, 
         material: this.wheelMaterial,
       })
-      this.wheelBody.type = CANNON.Body.KINEMATIC;
-      this.wheelBody.collisionFilterGroup = 0;
 
-      // const q = new CANNON.Quaternion();
-			// q.setFromAxisAngle(new CANNON.Vec3(1, 0, 1), Math.PI / 2);
+      const q = new CANNON.Quaternion();
+			q.setFromAxisAngle(new CANNON.Vec3(0, 1, 1), Math.PI / 2);
       
       // this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
       this.world.addBody(this.wheelBody);
-
     })
 
     // Update wheels
     this.world.addEventListener('postStep', () => {
-      for (var i = 0; i < this.raycastVehicle.wheelInfos.length; i++) {
+      for (let i = 0; i < this.raycastVehicle.wheelInfos.length; i++) {
           this.raycastVehicle.updateWheelTransform(i);
-          var t = this.raycastVehicle.wheelInfos[i].worldTransform;
-          var wheelBody = this.wheelBodies[i];
+          let t = this.raycastVehicle.wheelInfos[i].worldTransform;
+          let wheelBody = this.wheelBodies[i];
           wheelBody.position.copy(t.position);
           wheelBody.quaternion.copy(t.quaternion);
       }
     });
 
-
     // Vehicle handler
-    this.maxSteerValue = 0.65;
-    this.maxForce = 1100;
-    this.brakeForce = 100000;
+    this.maxSteerValue = 0.5;
+    this.maxForce = 2000;
+    this.brakeForce = 100;
 
-    document.onkeydown = () => this.handler({
-      vehicle: this.raycastVehicle,
-      maxForce: this.maxForce,
-      brakeForce: this.brakeForce,
-      maxSteerValue: this.maxSteerValue
-    })
+    document.onkeydown = () => this.handler()
 
-    document.onkeyup = () => this.handler({
-      vehicle: this.raycastVehicle,
-      maxForce: this.maxForce,
-      brakeForce: this.brakeForce,
-      maxSteerValue: this.maxSteerValue
-    })
+    document.onkeyup = () => this.handler()
     
   }
 
-  handler({
-    vehicle = null,
-    maxForce = 0,
-    brakeForce = 0,
-    maxSteerValue = 0.7
-  } = {}) {
+  handler() {
 
     const e = window.event;
     var up = (e.type === 'keyup');
@@ -239,38 +229,36 @@ export default class Car {
       return;
     }
 
-    vehicle.setBrake(0, 0);
-    vehicle.setBrake(0, 1);
-    vehicle.setBrake(0, 2);
-    vehicle.setBrake(0, 3);
+    this.raycastVehicle.setBrake(0, 0);
+    this.raycastVehicle.setBrake(0, 1);
+    this.raycastVehicle.setBrake(0, 2);
+    this.raycastVehicle.setBrake(0, 3);
 
     switch (e.keyCode) {
       
       case 87: // W
-        vehicle.applyEngineForce(up ? 0 : maxForce, 0);
-        vehicle.applyEngineForce(up ? 0 : maxForce, 1);
+        this.raycastVehicle.applyEngineForce(up ? 0 : this.maxForce, 0);
+        this.raycastVehicle.applyEngineForce(up ? 0 : this.maxForce, 1);
         break;
       
       case 83: // S
-        vehicle.applyEngineForce(up ? 0 : -maxForce, 0);
-        vehicle.applyEngineForce(up ? 0 : -maxForce, 1);
+        this.raycastVehicle.applyEngineForce(up ? 0 : -this.maxForce, 0);
+        this.raycastVehicle.applyEngineForce(up ? 0 : -this.maxForce, 1);
         break;
 
       case 32: // Spacebar
-        vehicle.setBrake(brakeForce, 0);
-        vehicle.setBrake(brakeForce, 1);
-        vehicle.setBrake(brakeForce, 2);
-        vehicle.setBrake(brakeForce, 3);
+        this.raycastVehicle.setBrake(this.brakeForce, 0);
+        this.raycastVehicle.setBrake(this.brakeForce, 1);
         break;
 
-      case 68: // right
-        vehicle.setSteeringValue(up ? 0 : -maxSteerValue, 2);
-        vehicle.setSteeringValue(up ? 0 : -maxSteerValue, 3);
+      case 68: // D
+        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 2);
+        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 3);
         break;
   
-      case 65: // left
-        vehicle.setSteeringValue(up ? 0 : maxSteerValue, 2);
-        vehicle.setSteeringValue(up ? 0 : maxSteerValue, 3);
+      case 65: // A
+        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 2);
+        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 3);
         break;
 
     }
@@ -280,16 +268,17 @@ export default class Car {
   updateWheels() {
     let i = 0;
     this.wheelObjects.forEach((wheel) => {
-      wheel.position.copy(this.wheelBodies[i].position)
-      wheel.quaternion.copy(this.wheelBodies[i].quaternion)
-      if (i === 0 || i === 2) wheel.rotation.z = Math.PI
+      let t = this.raycastVehicle.wheelInfos[i].worldTransform;
+      wheel.position.copy(t.position)
+      wheel.quaternion.copy(t.quaternion)
+      // if (i === 0 || i === 2) wheel.rotation.z = Math.PI
       i++;
     })
   }
 
   updateCar() {
-    this.car.position.copy(this.chassisBody.position)
-    this.car.quaternion.copy(this.chassisBody.quaternion)  
+    this.carBody.position.copy(this.chassisBody.position)
+    this.carBody.quaternion.copy(this.chassisBody.quaternion)  
 
     this.carCamera.position.copy(this.car.position)
 

@@ -34,6 +34,7 @@ export default class Ground {
   addGroundPhysics() {
     // Create ground plane physics
     this.groundMaterial = new CANNON.Material('groundMaterial')
+    this.groundMaterial.friction = 0.3
 
     this.groundShape = new CANNON.Plane()
     this.groundBody = new CANNON.Body({

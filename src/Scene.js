@@ -24,9 +24,8 @@ export default class Scene {
     // Initialise the physics world
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
-    this.world.gravity.set(0, -10, 0);
-    this.world.defaultContactMaterial.friction = 0;
-    console.log(this.world.defaultContactMaterial)
+    this.world.gravity.set(0, -9.82, 0);
+    // this.world.defaultContactMaterial.friction = 0
 
     // Clock
     this.clock = new THREE.Clock();
@@ -93,23 +92,23 @@ export default class Scene {
       0.1,
       10000
     );
-    this.camera.position.set(0, 5, 13);
+    this.camera.position.set(0, 5, -30);
   }
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.2);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.3);
     this.hemiLight.position.set(0, 1, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 3.2);
-    this.dirLight.position.set(100, 100, 100);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 3.0);
+    this.dirLight.position.set(100, 120, 100);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 2048;
     this.dirLight.shadow.mapSize.height = 2048;
     this.dirLight.shadow.bias = -0.0001;
-    this.dirLight.shadow.camera.far = 900;
+    this.dirLight.shadow.camera.far = 31900;
     this.dirLight.shadow.camera.near = 0.5;
     this.dirLight.shadow.radius = 62;
     this.scene.add(this.dirLight);
@@ -134,6 +133,7 @@ export default class Scene {
       materials: [this.ground.groundMaterial]
     });
 
+    this.car.car.add(this.camera)
   }
 
   updatePhysics() {
@@ -154,6 +154,19 @@ export default class Scene {
 
     this.spotlight.quaternion.copy(this.camera.quaternion)
 
+    this.camera.position.set(
+      this.car.carBody.position.x,
+      this.car.carBody.position.y + 2,
+      this.car.carBody.position.z + 17,
+    )
+
+    this.camera.quaternion.copy(this.car.carBody.quaternion)
+
+    // this.camera.lookAt(this.car.car)
+
+    this.controls.target.copy(this.car.carBody.position)
+
+    
     if (this.camera.position.y < 2) this.camera.position.y = 2
 
     this.ground.groundCamera.update(this.renderer, this.scene)
