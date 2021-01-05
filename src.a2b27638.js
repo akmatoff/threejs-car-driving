@@ -53244,6 +53244,8 @@ exports.OBJLoader = OBJLoader;
 module.exports = "/car_v-1.0ec845ab.obj";
 },{}],"assets/models/wheel.obj":[function(require,module,exports) {
 module.exports = "/wheel.536bdd74.obj";
+},{}],"assets/models/wheel_rotated.obj":[function(require,module,exports) {
+module.exports = "/wheel_rotated.b4252367.obj";
 },{}],"src/objects/Car.js":[function(require,module,exports) {
 "use strict";
 
@@ -53274,6 +53276,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var vehicle = require("../../assets/models/car_v-1.obj");
 
 var wheel = require("../../assets/models/wheel.obj");
+
+var wheelRotated = require("../../assets/models/wheel_rotated.obj");
 
 var Car = /*#__PURE__*/function () {
   function Car(scene, world) {
@@ -53373,7 +53377,8 @@ var Car = /*#__PURE__*/function () {
       var _this2 = this;
 
       for (var i = 0; i < 4; i++) {
-        this.objLoader.load(wheel, function (obj) {
+        var w = i <= 1 ? wheel : wheelRotated;
+        this.objLoader.load(w, function (obj) {
           obj.castShadow = true;
           obj.receiveShadow = true; // Custom materials for wheels
 
@@ -53397,6 +53402,8 @@ var Car = /*#__PURE__*/function () {
           // obj.position.copy(this.wheelBodies[i].position)
           // i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
 
+          console.log(obj);
+
           _this2.wheelObjects.push(obj);
 
           _this2.car.add(obj);
@@ -53412,7 +53419,7 @@ var Car = /*#__PURE__*/function () {
       this.bodyMaterial = new CANNON.Material('bodyMaterial'); // Contact materials
 
       this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-        friction: 0.1,
+        friction: 0.3,
         restitution: 0,
         contactEquationStiffness: 10000
       });
@@ -53455,8 +53462,8 @@ var Car = /*#__PURE__*/function () {
         indexForwardAxis: 2
       });
 
-      for (var i = 1; i <= 4; i++) {
-        this.options.chassisConnectionPointLocal.set(i % 2 === 0 ? 2.4 : -2.4, -0.1, i <= 2 ? 4.2 : -4.0);
+      for (var i = 0; i < 4; i++) {
+        this.options.chassisConnectionPointLocal.set(i === 0 || i === 1 ? 2.4 : -2.4, -0.1, i === 0 || i === 2 ? 4.2 : -4.0);
         this.raycastVehicle.addWheel(this.options);
       }
 
@@ -53465,7 +53472,7 @@ var Car = /*#__PURE__*/function () {
       this.raycastVehicle.wheelInfos.forEach(function (wheel) {
         _this3.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 60);
         _this3.wheelBody = new CANNON.Body({
-          mass: 0,
+          mass: 1,
           material: _this3.wheelMaterial
         });
         var q = new CANNON.Quaternion();
@@ -53490,8 +53497,8 @@ var Car = /*#__PURE__*/function () {
       }); // Vehicle handler
 
       this.maxSteerValue = 0.4;
-      this.maxForce = 1300;
-      this.brakeForce = 100;
+      this.maxForce = 1400;
+      this.brakeForce = 120;
 
       document.onkeydown = function () {
         return _this3.handler();
@@ -53537,14 +53544,14 @@ var Car = /*#__PURE__*/function () {
 
         case 68:
           // D
-          this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 2);
           this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 3);
+          this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 1);
           break;
 
         case 65:
           // A
-          this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 2);
           this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 3);
+          this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 1);
           break;
       }
     }
@@ -53581,7 +53588,7 @@ var Car = /*#__PURE__*/function () {
 }();
 
 exports.default = Car;
-},{"three/examples/jsm/loaders/OBJLoader":"node_modules/three/examples/jsm/loaders/OBJLoader.js","three":"node_modules/three/build/three.module.js","cannon":"node_modules/cannon/build/cannon.js","../../assets/models/car_v-1.obj":"assets/models/car_v-1.obj","../../assets/models/wheel.obj":"assets/models/wheel.obj"}],"src/objects/Ground.js":[function(require,module,exports) {
+},{"three/examples/jsm/loaders/OBJLoader":"node_modules/three/examples/jsm/loaders/OBJLoader.js","three":"node_modules/three/build/three.module.js","cannon":"node_modules/cannon/build/cannon.js","../../assets/models/car_v-1.obj":"assets/models/car_v-1.obj","../../assets/models/wheel.obj":"assets/models/wheel.obj","../../assets/models/wheel_rotated.obj":"assets/models/wheel_rotated.obj"}],"src/objects/Ground.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -53973,7 +53980,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55887" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59010" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
