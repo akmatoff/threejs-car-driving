@@ -128,13 +128,13 @@ export default class Car {
 
     // Contact materials
     this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.materials[0], {
-      friction: 0.3,
+      friction: 0.1,
       restitution: 0,
       contactEquationStiffness: 10000
     })
 
     this.bodyGroundContactMaterial = new CANNON.ContactMaterial(this.bodyMaterial, this.materials[0], {
-      friction: 0.3,
+      friction: 0.1,
       restitution: 0,
       contactEquationStiffness: 10000
     })
@@ -143,7 +143,7 @@ export default class Car {
     this.world.addContactMaterial(this.bodyGroundContactMaterial)
 
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 1200})
+    this.chassisBody = new CANNON.Body({mass: 2000})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position.set(0, 6, -100)
     this.chassisBody.angularVelocity.set(-0.2, 0, 0);
@@ -184,16 +184,16 @@ export default class Car {
     this.wheelBodies = [];
 
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
-      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 20);
+      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 60);
       this.wheelBody = new CANNON.Body({
-        mass: 1, 
+        mass: 0, 
         material: this.wheelMaterial,
       })
 
       const q = new CANNON.Quaternion();
 			q.setFromAxisAngle(new CANNON.Vec3(0, 1, 1), Math.PI / 2);
       
-      // this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
+      this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
       this.world.addBody(this.wheelBody);
     })
@@ -210,8 +210,8 @@ export default class Car {
     });
 
     // Vehicle handler
-    this.maxSteerValue = 0.5;
-    this.maxForce = 2000;
+    this.maxSteerValue = 0.4;
+    this.maxForce = 1300;
     this.brakeForce = 100;
 
     document.onkeydown = () => this.handler()
@@ -278,7 +278,7 @@ export default class Car {
 
   updateCar() {
     this.carBody.position.copy(this.chassisBody.position)
-    this.carBody.quaternion.copy(this.chassisBody.quaternion)  
+    this.carBody.quaternion.copy(this.chassisBody.quaternion)    
 
     this.carCamera.position.copy(this.car.position)
 

@@ -25,7 +25,7 @@ export default class Scene {
     this.world = new CANNON.World();
     this.world.broadphase = new CANNON.SAPBroadphase(this.world); // Change the collision detection method
     this.world.gravity.set(0, -9.82, 0);
-    // this.world.defaultContactMaterial.friction = 0
+    this.world.defaultContactMaterial.friction = 0
 
     // Clock
     this.clock = new THREE.Clock();
@@ -50,7 +50,7 @@ export default class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.42;
+    this.renderer.toneMappingExposure = 0.4;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
@@ -62,7 +62,7 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.1, 0.3)
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.11, 0.1, 0.3)
     this.smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
 
     this.fxaaPass = new ShaderPass(FXAAShader);
@@ -97,13 +97,13 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.3);
-    this.hemiLight.position.set(0, 1, 0);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.6);
+    this.hemiLight.position.set(0, 0.5, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 3.0);
-    this.dirLight.position.set(100, 120, 100);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 1.9);
+    this.dirLight.position.set(100, 1120, 100);
     this.dirLight.castShadow = true;
     this.dirLight.shadow.mapSize.width = 2048;
     this.dirLight.shadow.mapSize.height = 2048;
@@ -111,14 +111,19 @@ export default class Scene {
     this.dirLight.shadow.camera.far = 31900;
     this.dirLight.shadow.camera.near = 0.5;
     this.dirLight.shadow.radius = 62;
-    this.scene.add(this.dirLight);
+    this.scene.add(this.dirLight)
+    this.scene.add(this.dirLight.target)
+
+    this.dirLightHelper = new THREE.DirectionalLightHelper(this.dirLight)
+    // this.scene.add(this.dirLightHelper)
 
     // Spotlight
     this.spotlight = new THREE.SpotLight(0xff9940, 0);
     this.spotlight.power = 5
-    this.spotlight.penumbra = 0.8
+    this.spotlight.penumbra = 0.9
     this.spotlight.castShadow = true;
     this.spotlight.shadow.radius = 8;
+    this.spotlight.shadow.camera.far = 10000
     this.spotlight.shadow.mapSize.width = 2048;
     this.spotlight.shadow.mapSize.heihgt = 2048;
     this.scene.add(this.spotlight);
@@ -133,11 +138,11 @@ export default class Scene {
       materials: [this.ground.groundMaterial]
     });
 
-    this.car.car.add(this.camera)
+    // this.car.car.add(this.camera)
   }
 
   updatePhysics() {
-    this.world.step(1 / 60, 0.035, 3);
+    this.world.step(1 / 60, 0.04, 3);
 
     this.car.updatePhysics()
   }
@@ -147,25 +152,20 @@ export default class Scene {
 
     // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
-      this.camera.position.x + 5,
+      this.camera.position.x,
       this.camera.position.y + 5,
-      this.camera.position.z + 5
+      this.camera.position.z - 5
     );
 
     this.spotlight.quaternion.copy(this.camera.quaternion)
 
-    this.camera.position.set(
-      this.car.carBody.position.x,
-      this.car.carBody.position.y + 2,
-      this.car.carBody.position.z + 17,
-    )
+    this.dirLight.target.position.copy(this.car.carBody.position)
 
     this.camera.quaternion.copy(this.car.carBody.quaternion)
 
-    // this.camera.lookAt(this.car.car)
+    this.camera.lookAt(this.car.carBody)
 
     this.controls.target.copy(this.car.carBody.position)
-
     
     if (this.camera.position.y < 2) this.camera.position.y = 2
 
