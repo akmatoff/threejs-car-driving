@@ -43,12 +43,12 @@ export default class Car {
 
       // Custom materials for the vehicle
       this.engineMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
-      this.engineMat.shininess = 600;
+      this.engineMat.shininess = 250;
       this.bodyMat = new THREE.MeshPhongMaterial({ 
         color: 0xe04000, 
         // envMap: this.carCamera.renderTarget.texture, 
         reflectivity: 1 });
-      this.bodyMat.shininess = 500;
+      this.bodyMat.shininess = 200;
       this.bodyMat.combine = 10;
       this.windowMat = new THREE.MeshPhongMaterial({
         color: 0x090909,
@@ -117,8 +117,6 @@ export default class Car {
         // obj.position.set(i % 2 == 0 ? 2.5 : -2.5, 1, i < 2 ? 4.2 : -4.0); // set the position of the wheel
         // obj.position.copy(this.wheelBodies[i].position)
         // i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
-        
-        console.log(obj)
 
         this.wheelObjects.push(obj);
         this.car.add(obj);

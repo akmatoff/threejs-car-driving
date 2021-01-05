@@ -53,7 +53,7 @@ export default class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.4;
+    this.renderer.toneMappingExposure = 0.35;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setAnimationLoop(() => {
@@ -65,7 +65,7 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.11, 0.1, 0.3)
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.12, 0.1, 0.3)
     this.smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
 
     this.fxaaPass = new ShaderPass(FXAAShader);
@@ -95,12 +95,12 @@ export default class Scene {
       0.1,
       10000
     );
-    this.camera.position.set(0, 5, -30);
+    this.camera.position.set(0, 5, 16);
   }
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.6);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.3);
     this.hemiLight.position.set(0, 0.5, 0);
     this.scene.add(this.hemiLight);
 
@@ -108,14 +108,18 @@ export default class Scene {
     this.dirLight = new THREE.DirectionalLight(0xffe5c9, 1.9);
     this.dirLight.position.set(100, 1120, 100);
     this.dirLight.castShadow = true;
-    this.dirLight.shadow.mapSize.width = 2048;
-    this.dirLight.shadow.mapSize.height = 2048;
+    this.dirLight.shadow.mapSize.width = 1024;
+    this.dirLight.shadow.mapSize.height = 1024;
     this.dirLight.shadow.bias = -0.0001;
-    this.dirLight.shadow.camera.far = 31900;
+    this.dirLight.shadow.camera.left = 100;
+    this.dirLight.shadow.camera.right = 100;
+    this.dirLight.shadow.camera.bottom = 100;
+    this.dirLight.shadow.camera.top = 100;
+    this.dirLight.shadow.camera.far = 10000;
     this.dirLight.shadow.camera.near = 0.5;
-    this.dirLight.shadow.radius = 62;
-    this.scene.add(this.dirLight)
-    this.scene.add(this.dirLight.target)
+    this.dirLight.shadow.radius = 32;
+    // this.scene.add(this.dirLight)
+    // this.scene.add(this.dirLight.target)
 
     this.dirLightHelper = new THREE.DirectionalLightHelper(this.dirLight)
     // this.scene.add(this.dirLightHelper)
@@ -127,9 +131,19 @@ export default class Scene {
     this.spotlight.castShadow = true;
     this.spotlight.shadow.radius = 8;
     this.spotlight.shadow.camera.far = 10000
-    this.spotlight.shadow.mapSize.width = 2048;
-    this.spotlight.shadow.mapSize.heihgt = 2048;
+    this.spotlight.shadow.mapSize.width = 1024
+    this.spotlight.shadow.mapSize.heihgt = 1024
     this.scene.add(this.spotlight);
+
+    // Point Light
+    this.pointLight = new THREE.PointLight(0xffe5c9, 2, 10000);
+    this.pointLight.position.set(0, 250, -10)
+    this.pointLight.castShadow = true;
+    this.pointLight.shadow.radius = 2;
+    this.pointLight.shadow.camera.far = 10000
+    this.pointLight.shadow.mapSize.width = 1028;
+    this.pointLight.shadow.mapSize.heihgt = 1024;
+    this.scene.add(this.pointLight);
   }
 
   addObjects() {
@@ -141,7 +155,7 @@ export default class Scene {
       materials: [this.ground.groundMaterial]
     });
 
-    // this.car.car.add(this.camera)
+    this.car.carBody.add(this.camera)
   }
 
   updatePhysics() {
@@ -153,29 +167,31 @@ export default class Scene {
   render() {
     this.updatePhysics();
 
+    // Lights update
     // Update the spotlight position and set it to camera's position
     this.spotlight.position.set(
       this.camera.position.x,
       this.camera.position.y + 5,
       this.camera.position.z - 5
     );
-
     this.spotlight.quaternion.copy(this.camera.quaternion)
 
-    this.dirLight.target.position.copy(this.car.carBody.position)
+    this.dirLight.target.updateMatrixWorld();
+    this.dirLight.shadow.camera.updateProjectionMatrix();
 
-    this.camera.quaternion.copy(this.car.carBody.quaternion)
-
-    this.camera.lookAt(this.car.carBody)
-
-    this.controls.target.copy(this.car.carBody.position)
-    
+    // Camera update
+    // this.camera.position.copy(this.car.carBody.position)
+    this.camera.position.z = -80
+    // this.camera.lookAt(this.car.carBody.position) 
     if (this.camera.position.y < 2) this.camera.position.y = 2
-
+    
+    // Objects update
     this.ground.groundCamera.update(this.renderer, this.scene)
     this.car.carCamera.update(this.renderer, this.scene)
 
+    // Controls update
     this.controls.update();
+    this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
 
     this.composer.render(this.clock.getDelta());
   }
