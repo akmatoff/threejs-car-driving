@@ -1,1 +1,0 @@
-{"version":3,"sources":["style.css"],"names":[],"mappings":"AAAA,EACE,qBACF,CAEA,UAEE,QAAS,CACT,SACF,CAEA,OACE,aACF","file":"src.7280efaa.css","sourceRoot":"..","sourcesContent":["* {\r\n  box-sizing: border-box;\r\n}\r\n\r\nhmtl,\r\nbody {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\ncanvas {\r\n  display: block;\r\n}\r\n"]}

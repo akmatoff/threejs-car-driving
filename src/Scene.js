@@ -17,7 +17,9 @@ export default class Scene {
   }
 
   addEvents() {
-    window.addEventListener("resize", this.onWindowResize);
+    window.addEventListener("resize", () => {
+      this.onWindowResize();
+    });
   }
 
   init() {
@@ -35,11 +37,12 @@ export default class Scene {
     this.scene.background = new THREE.Color(0x6c9bd9);
     this.scene.fog = new THREE.FogExp2(0x6c9bd9, 0.004);
 
+    this.addEvents();
     this.setCamera();
     this.setLights();
     this.addObjects();
     this.setRenderer();
-    this.addEvents();
+    
   }
 
   setRenderer() {
@@ -181,6 +184,5 @@ export default class Scene {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    console.log('resize')
   }
 }
