@@ -53324,13 +53324,13 @@ var Car = /*#__PURE__*/function () {
         _this.engineMat = new THREE.MeshPhongMaterial({
           color: 0x111111
         });
-        _this.engineMat.shininess = 600;
+        _this.engineMat.shininess = 250;
         _this.bodyMat = new THREE.MeshPhongMaterial({
           color: 0xe04000,
           // envMap: this.carCamera.renderTarget.texture, 
           reflectivity: 1
         });
-        _this.bodyMat.shininess = 500;
+        _this.bodyMat.shininess = 200;
         _this.bodyMat.combine = 10;
         _this.windowMat = new THREE.MeshPhongMaterial((_THREE$MeshPhongMater = {
           color: 0x090909,
@@ -53402,8 +53402,6 @@ var Car = /*#__PURE__*/function () {
           // obj.position.copy(this.wheelBodies[i].position)
           // i % 2 !== 0 ? obj.rotation.z = Math.PI : obj.rotation.z = 0 // Rotate the wheel if it's on other side
 
-          console.log(obj);
-
           _this2.wheelObjects.push(obj);
 
           _this2.car.add(obj);
@@ -53432,7 +53430,7 @@ var Car = /*#__PURE__*/function () {
       this.world.addContactMaterial(this.bodyGroundContactMaterial);
       this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3));
       this.chassisBody = new CANNON.Body({
-        mass: 2000
+        mass: 1800
       });
       this.chassisBody.addShape(this.chassisShape);
       this.chassisBody.position.set(0, 6, -100);
@@ -53443,9 +53441,9 @@ var Car = /*#__PURE__*/function () {
         directionLocal: new CANNON.Vec3(0, -1, 0),
         suspensionStiffness: 30,
         suspensionRestLength: 0.87,
-        frictionSlip: 5,
+        frictionSlip: 2,
         dampingRelaxation: 2.3,
-        dampingCompression: 4.4,
+        dampingCompression: 3.4,
         maxSuspensionForce: 200000,
         rollInfluence: 0.01,
         axleLocal: new CANNON.Vec3(-1, 0, 0),
@@ -53459,7 +53457,8 @@ var Car = /*#__PURE__*/function () {
         chassisBody: this.chassisBody,
         indexRightAxis: 0,
         indexUpAxis: 1,
-        indexForwardAxis: 2
+        indexForwardAxis: 2,
+        sliding: true
       });
 
       for (var i = 0; i < 4; i++) {
@@ -53497,8 +53496,8 @@ var Car = /*#__PURE__*/function () {
       }); // Vehicle handler
 
       this.maxSteerValue = 0.4;
-      this.maxForce = 1400;
-      this.brakeForce = 120;
+      this.maxForce = 2800;
+      this.brakeForce = 300;
 
       document.onkeydown = function () {
         return _this3.handler();
@@ -53538,8 +53537,8 @@ var Car = /*#__PURE__*/function () {
 
         case 32:
           // Spacebar
-          this.raycastVehicle.setBrake(this.brakeForce, 0);
-          this.raycastVehicle.setBrake(this.brakeForce, 1);
+          this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 0);
+          this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 1);
           break;
 
         case 68:
@@ -53564,8 +53563,7 @@ var Car = /*#__PURE__*/function () {
       this.wheelObjects.forEach(function (wheel) {
         var t = _this4.raycastVehicle.wheelInfos[i].worldTransform;
         wheel.position.copy(t.position);
-        wheel.quaternion.copy(t.quaternion); // if (i === 0 || i === 2) wheel.rotation.z = Math.PI
-
+        wheel.quaternion.copy(t.quaternion);
         i++;
       });
     }
@@ -53715,6 +53713,8 @@ var Scene = /*#__PURE__*/function () {
   function Scene() {
     _classCallCheck(this, Scene);
 
+    this.mouse = new THREE.Vector2();
+    this.raycaster = new THREE.Raycaster();
     this.init();
   }
 
@@ -53725,6 +53725,9 @@ var Scene = /*#__PURE__*/function () {
 
       window.addEventListener("resize", function () {
         _this.onWindowResize();
+      });
+      window.addEventListener("mousemove", function () {
+        _this.onMouseMove();
       });
     }
   }, {
@@ -53737,7 +53740,8 @@ var Scene = /*#__PURE__*/function () {
       this.world.gravity.set(0, -9.82, 0);
       this.world.defaultContactMaterial.friction = 0; // Clock
 
-      this.clock = new THREE.Clock(); // Create the THREE Scene
+      this.clock = new THREE.Clock();
+      this.timeStep = 1 / 30; // Create the THREE Scene
 
       this.scene = new THREE.Scene();
       this.scene.background = new THREE.Color(0x6c9bd9);
@@ -53747,6 +53751,7 @@ var Scene = /*#__PURE__*/function () {
       this.setLights();
       this.addObjects();
       this.setRenderer();
+      this.render();
     }
   }, {
     key: "setRenderer",
@@ -53759,18 +53764,18 @@ var Scene = /*#__PURE__*/function () {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 0.4;
+      this.renderer.toneMappingExposure = 0.8;
       this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.setAnimationLoop(function () {
         _this2.render();
       }); // Render loop
       // Controls
-
-      this.controls = new _OrbitControls.OrbitControls(this.camera, this.renderer.domElement); // Passes
+      // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      // Passes
 
       this.renderPass = new _RenderPass.RenderPass(this.scene, this.camera);
-      this.unrealBloomPass = new _UnrealBloomPass.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.11, 0.1, 0.3);
+      this.unrealBloomPass = new _UnrealBloomPass.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 1, 0.1);
       this.smaaPass = new _SMAAPass.SMAAPass(window.innerWidth, window.innerHeight);
       this.fxaaPass = new _ShaderPass.ShaderPass(_FXAAShader.FXAAShader);
       var pixelRatio = this.renderer.getPixelRatio();
@@ -53780,9 +53785,9 @@ var Scene = /*#__PURE__*/function () {
 
       this.composer = new _EffectComposer.EffectComposer(this.renderer);
       this.composer.addPass(this.renderPass);
+      this.composer.addPass(this.smaaPass);
       this.composer.addPass(this.gammaCorrectionPass);
       this.composer.addPass(this.unrealBloomPass);
-      this.composer.addPass(this.smaaPass);
       this.composer.addPass(this.fxaaPass);
       document.body.appendChild(this.renderer.domElement);
     }
@@ -53790,39 +53795,32 @@ var Scene = /*#__PURE__*/function () {
     key: "setCamera",
     value: function setCamera() {
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-      this.camera.position.set(0, 5, -30);
+      this.currentLookPos = new THREE.Vector3();
+      this.currentCamPos = new THREE.Vector3();
     }
   }, {
     key: "setLights",
     value: function setLights() {
       // Hemisphere light
-      this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.6);
+      this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.5);
       this.hemiLight.position.set(0, 0.5, 0);
       this.scene.add(this.hemiLight); // Directional light
 
-      this.dirLight = new THREE.DirectionalLight(0xffe5c9, 1.9);
-      this.dirLight.position.set(100, 1120, 100);
+      this.dirLight = new THREE.DirectionalLight(0xffe5c9, 0.8);
+      this.dirLight.position.set(0, 1000, 200);
+      this.dirLight.target.position.set(0, 0, -100);
       this.dirLight.castShadow = true;
       this.dirLight.shadow.mapSize.width = 2048;
       this.dirLight.shadow.mapSize.height = 2048;
       this.dirLight.shadow.bias = -0.0001;
-      this.dirLight.shadow.camera.far = 31900;
+      this.dirLight.shadow.camera.left = 1000;
+      this.dirLight.shadow.camera.right = -1000;
+      this.dirLight.shadow.camera.bottom = -300;
+      this.dirLight.shadow.camera.top = 300;
+      this.dirLight.shadow.camera.far = 5000;
       this.dirLight.shadow.camera.near = 0.5;
-      this.dirLight.shadow.radius = 62;
       this.scene.add(this.dirLight);
-      this.scene.add(this.dirLight.target);
       this.dirLightHelper = new THREE.DirectionalLightHelper(this.dirLight); // this.scene.add(this.dirLightHelper)
-      // Spotlight
-
-      this.spotlight = new THREE.SpotLight(0xff9940, 0);
-      this.spotlight.power = 5;
-      this.spotlight.penumbra = 0.9;
-      this.spotlight.castShadow = true;
-      this.spotlight.shadow.radius = 8;
-      this.spotlight.shadow.camera.far = 10000;
-      this.spotlight.shadow.mapSize.width = 2048;
-      this.spotlight.shadow.mapSize.heihgt = 2048;
-      this.scene.add(this.spotlight);
     }
   }, {
     key: "addObjects",
@@ -53832,29 +53830,39 @@ var Scene = /*#__PURE__*/function () {
 
       this.car = new _Car.default(this.scene, this.world, {
         materials: [this.ground.groundMaterial]
-      }); // this.car.car.add(this.camera)
+      });
     }
   }, {
     key: "updatePhysics",
     value: function updatePhysics() {
-      this.world.step(1 / 60, 0.04, 3);
       this.car.updatePhysics();
+      this.world.step(this.timeStep);
+    }
+  }, {
+    key: "updateCamera",
+    value: function updateCamera() {
+      this.lookPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y, this.car.carBody.position.z); // this.lookPos.applyQuaternion(this.car.carBody.quaternion)
+      // this.lookPos.add(this.car.carBody.position)
+
+      this.currentLookPos.lerp(this.lookPos, 0.2);
+      this.camPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y + 3, this.car.carBody.position.z + 18);
+      this.currentCamPos.lerp(this.camPos, 0.2);
+      this.camera.position.copy(this.currentCamPos);
+      this.camera.lookAt(this.currentLookPos);
+      if (this.camera.position.y < 2) this.camera.position.y = 2;
     }
   }, {
     key: "render",
     value: function render() {
-      this.updatePhysics(); // Update the spotlight position and set it to camera's position
+      this.updatePhysics();
+      this.updateCamera();
+      this.raycaster.setFromCamera(this.mouse, this.camera); // Objects update
 
-      this.spotlight.position.set(this.camera.position.x, this.camera.position.y + 5, this.camera.position.z - 5);
-      this.spotlight.quaternion.copy(this.camera.quaternion);
-      this.dirLight.target.position.copy(this.car.carBody.position);
-      this.camera.quaternion.copy(this.car.carBody.quaternion);
-      this.camera.lookAt(this.car.carBody);
-      this.controls.target.copy(this.car.carBody.position);
-      if (this.camera.position.y < 2) this.camera.position.y = 2;
       this.ground.groundCamera.update(this.renderer, this.scene);
-      this.car.carCamera.update(this.renderer, this.scene);
-      this.controls.update();
+      this.car.carCamera.update(this.renderer, this.scene); // Controls update
+      // this.controls.update();
+      // this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
+
       this.composer.render(this.clock.getDelta());
     }
   }, {
@@ -53863,6 +53871,13 @@ var Scene = /*#__PURE__*/function () {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  }, {
+    key: "onMouseMove",
+    value: function onMouseMove() {
+      var e = window.event;
+      this.mouse.x = e.clientX / window.innerWidth * 2 - 1;
+      this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     }
   }]);
 
@@ -53980,7 +53995,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59010" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50648" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
