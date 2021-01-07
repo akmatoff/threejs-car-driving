@@ -32,6 +32,8 @@ export default class Scene {
     // Clock
     this.clock = new THREE.Clock();
 
+    this.timeStep = 1 / 30;
+
     // Create the THREE Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x6c9bd9);
@@ -42,7 +44,7 @@ export default class Scene {
     this.setLights();
     this.addObjects();
     this.setRenderer();
-    
+    this.render()
   }
 
   setRenderer() {
@@ -61,7 +63,7 @@ export default class Scene {
     }); // Render loop
 
     // Controls
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
@@ -80,9 +82,9 @@ export default class Scene {
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderPass);
+    this.composer.addPass(this.smaaPass);
     this.composer.addPass(this.gammaCorrectionPass);
     this.composer.addPass(this.unrealBloomPass);
-    this.composer.addPass(this.smaaPass);
     this.composer.addPass(this.fxaaPass);
 
     document.body.appendChild(this.renderer.domElement);
@@ -95,7 +97,10 @@ export default class Scene {
       0.1,
       10000
     );
-    this.camera.position.set(0, 5, 16);
+
+    this.currentLookPos = new THREE.Vector3()
+    this.currentCamPos = new THREE.Vector3()
+
   }
 
   setLights() {
@@ -118,7 +123,7 @@ export default class Scene {
     this.dirLight.shadow.camera.far = 10000;
     this.dirLight.shadow.camera.near = 0.5;
     this.dirLight.shadow.radius = 32;
-    // this.scene.add(this.dirLight)
+    this.scene.add(this.dirLight)
     // this.scene.add(this.dirLight.target)
 
     this.dirLightHelper = new THREE.DirectionalLightHelper(this.dirLight)
@@ -143,7 +148,7 @@ export default class Scene {
     this.pointLight.shadow.camera.far = 10000
     this.pointLight.shadow.mapSize.width = 1028;
     this.pointLight.shadow.mapSize.heihgt = 1024;
-    this.scene.add(this.pointLight);
+    // this.scene.add(this.pointLight);
   }
 
   addObjects() {
@@ -155,17 +160,43 @@ export default class Scene {
       materials: [this.ground.groundMaterial]
     });
 
-    this.car.carBody.add(this.camera)
   }
 
   updatePhysics() {
-    this.world.step(1 / 60, 0.04, 3);
-
     this.car.updatePhysics()
+    this.world.step(this.timeStep);
+  }
+
+  updateCamera() {
+    this.lookPos = new THREE.Vector3(
+      this.car.carBody.position.x,
+      this.car.carBody.position.y,
+      this.car.carBody.position.z
+    );
+    
+    this.lookPos.applyQuaternion(this.car.carBody.quaternion)
+    this.lookPos.add(this.car.carBody.position)
+
+    this.currentLookPos.lerp(this.lookPos, 0.2)
+
+    this.currentCamPos.lerp(new THREE.Vector3(
+      this.car.carBody.position.x,
+      this.car.carBody.position.y + 3,
+      this.car.carBody.position.z + 18
+    ), 0.2)
+
+    // this.currentCamPos.applyQuaternion(this.car.carBody.quaternion)
+    // this.currentCamPos.add(this.car.carBody.position)
+
+    this.camera.lookAt(this.currentLookPos);
+    this.camera.position.copy(this.currentCamPos);
+
+    if (this.camera.position.y < 2) this.camera.position.y = 2
   }
 
   render() {
     this.updatePhysics();
+    this.updateCamera();
 
     // Lights update
     // Update the spotlight position and set it to camera's position
@@ -176,22 +207,17 @@ export default class Scene {
     );
     this.spotlight.quaternion.copy(this.camera.quaternion)
 
-    this.dirLight.target.updateMatrixWorld();
-    this.dirLight.shadow.camera.updateProjectionMatrix();
+    // this.dirLight.target.updateMatrixWorld();
+    // this.dirLight.shadow.camera.updateProjectionMatrix();
 
-    // Camera update
-    // this.camera.position.copy(this.car.carBody.position)
-    this.camera.position.z = -80
-    // this.camera.lookAt(this.car.carBody.position) 
-    if (this.camera.position.y < 2) this.camera.position.y = 2
     
     // Objects update
     this.ground.groundCamera.update(this.renderer, this.scene)
     this.car.carCamera.update(this.renderer, this.scene)
 
     // Controls update
-    this.controls.update();
-    this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
+    // this.controls.update();
+    // this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
 
     this.composer.render(this.clock.getDelta());
   }

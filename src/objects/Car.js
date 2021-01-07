@@ -146,7 +146,7 @@ export default class Car {
     this.world.addContactMaterial(this.bodyGroundContactMaterial)
 
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 2000})
+    this.chassisBody = new CANNON.Body({mass: 1800})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position.set(0, 6, -100)
     this.chassisBody.angularVelocity.set(-0.2, 0, 0);
@@ -157,9 +157,9 @@ export default class Car {
       directionLocal: new CANNON.Vec3(0, -1, 0),
       suspensionStiffness: 30,
       suspensionRestLength: 0.87,
-      frictionSlip: 5,
+      frictionSlip: 2,
       dampingRelaxation: 2.3,
-      dampingCompression: 4.4,
+      dampingCompression: 3.4,
       maxSuspensionForce: 200000,
       rollInfluence:  0.01,
       axleLocal: new CANNON.Vec3(-1, 0, 0),
@@ -175,6 +175,7 @@ export default class Car {
       indexRightAxis: 0,
       indexUpAxis: 1,
       indexForwardAxis: 2,
+      sliding: true
     })
 
     for (let i = 0; i < 4; i++) {
@@ -214,8 +215,8 @@ export default class Car {
 
     // Vehicle handler
     this.maxSteerValue = 0.4;
-    this.maxForce = 1400;
-    this.brakeForce = 120;
+    this.maxForce = 2800;
+    this.brakeForce = 300;
 
     document.onkeydown = () => this.handler()
 
@@ -250,8 +251,8 @@ export default class Car {
         break;
 
       case 32: // Spacebar
-        this.raycastVehicle.setBrake(this.brakeForce, 0);
-        this.raycastVehicle.setBrake(this.brakeForce, 1);
+        this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 0);
+        this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 1);
         break;
 
       case 68: // D
@@ -274,7 +275,6 @@ export default class Car {
       let t = this.raycastVehicle.wheelInfos[i].worldTransform;
       wheel.position.copy(t.position)
       wheel.quaternion.copy(t.quaternion)
-      // if (i === 0 || i === 2) wheel.rotation.z = Math.PI
       i++;
     })
   }
