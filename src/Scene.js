@@ -13,6 +13,9 @@ import Ground from "./objects/Ground";
 
 export default class Scene {
   constructor() {
+    this.mouse = new THREE.Vector2();
+    this.raycaster = new THREE.Raycaster();
+
     this.init();
   }
 
@@ -20,6 +23,10 @@ export default class Scene {
     window.addEventListener("resize", () => {
       this.onWindowResize();
     });
+
+    window.addEventListener("mousemove", () => {
+      this.onMouseMove();
+    })
   }
 
   init() {
@@ -55,9 +62,9 @@ export default class Scene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.35;
+    this.renderer.toneMappingExposure = 0.8;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.setAnimationLoop(() => {
       this.render();
     }); // Render loop
@@ -67,7 +74,7 @@ export default class Scene {
 
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
-    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.12, 0.1, 0.3)
+    this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 1, 0.1)
     this.smaaPass = new SMAAPass(window.innerWidth, window.innerHeight);
 
     this.fxaaPass = new ShaderPass(FXAAShader);
@@ -105,50 +112,29 @@ export default class Scene {
 
   setLights() {
     // Hemisphere light
-    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 1.3);
+    this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.5);
     this.hemiLight.position.set(0, 0.5, 0);
     this.scene.add(this.hemiLight);
 
     // Directional light
-    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 1.9);
-    this.dirLight.position.set(100, 1120, 100);
+    this.dirLight = new THREE.DirectionalLight(0xffe5c9, 0.8);
+    this.dirLight.position.set(0, 1000, 200);
+    this.dirLight.target.position.set(0, 0, -100)
     this.dirLight.castShadow = true;
-    this.dirLight.shadow.mapSize.width = 1024;
-    this.dirLight.shadow.mapSize.height = 1024;
+    this.dirLight.shadow.mapSize.width = 2048;
+    this.dirLight.shadow.mapSize.height = 2048;
     this.dirLight.shadow.bias = -0.0001;
-    this.dirLight.shadow.camera.left = 100;
-    this.dirLight.shadow.camera.right = 100;
-    this.dirLight.shadow.camera.bottom = 100;
-    this.dirLight.shadow.camera.top = 100;
-    this.dirLight.shadow.camera.far = 10000;
+    this.dirLight.shadow.camera.left = 1000;
+    this.dirLight.shadow.camera.right = -1000;
+    this.dirLight.shadow.camera.bottom = -300;
+    this.dirLight.shadow.camera.top = 300;
+    this.dirLight.shadow.camera.far = 5000;
     this.dirLight.shadow.camera.near = 0.5;
-    this.dirLight.shadow.radius = 32;
     this.scene.add(this.dirLight)
-    // this.scene.add(this.dirLight.target)
 
     this.dirLightHelper = new THREE.DirectionalLightHelper(this.dirLight)
     // this.scene.add(this.dirLightHelper)
 
-    // Spotlight
-    this.spotlight = new THREE.SpotLight(0xff9940, 0);
-    this.spotlight.power = 5
-    this.spotlight.penumbra = 0.9
-    this.spotlight.castShadow = true;
-    this.spotlight.shadow.radius = 8;
-    this.spotlight.shadow.camera.far = 10000
-    this.spotlight.shadow.mapSize.width = 1024
-    this.spotlight.shadow.mapSize.heihgt = 1024
-    this.scene.add(this.spotlight);
-
-    // Point Light
-    this.pointLight = new THREE.PointLight(0xffe5c9, 2, 10000);
-    this.pointLight.position.set(0, 250, -10)
-    this.pointLight.castShadow = true;
-    this.pointLight.shadow.radius = 2;
-    this.pointLight.shadow.camera.far = 10000
-    this.pointLight.shadow.mapSize.width = 1028;
-    this.pointLight.shadow.mapSize.heihgt = 1024;
-    // this.scene.add(this.pointLight);
   }
 
   addObjects() {
@@ -159,7 +145,6 @@ export default class Scene {
     this.car = new Car(this.scene, this.world, {
       materials: [this.ground.groundMaterial]
     });
-
   }
 
   updatePhysics() {
@@ -174,42 +159,31 @@ export default class Scene {
       this.car.carBody.position.z
     );
     
-    this.lookPos.applyQuaternion(this.car.carBody.quaternion)
-    this.lookPos.add(this.car.carBody.position)
+    // this.lookPos.applyQuaternion(this.car.carBody.quaternion)
+    // this.lookPos.add(this.car.carBody.position)
 
     this.currentLookPos.lerp(this.lookPos, 0.2)
-
-    this.currentCamPos.lerp(new THREE.Vector3(
+    
+    this.camPos = new THREE.Vector3(
       this.car.carBody.position.x,
       this.car.carBody.position.y + 3,
       this.car.carBody.position.z + 18
-    ), 0.2)
+    )
 
-    // this.currentCamPos.applyQuaternion(this.car.carBody.quaternion)
-    // this.currentCamPos.add(this.car.carBody.position)
+    this.currentCamPos.lerp(this.camPos, 0.2)
 
-    this.camera.lookAt(this.currentLookPos);
     this.camera.position.copy(this.currentCamPos);
+    this.camera.lookAt(this.currentLookPos);
 
     if (this.camera.position.y < 2) this.camera.position.y = 2
+
   }
 
   render() {
     this.updatePhysics();
     this.updateCamera();
 
-    // Lights update
-    // Update the spotlight position and set it to camera's position
-    this.spotlight.position.set(
-      this.camera.position.x,
-      this.camera.position.y + 5,
-      this.camera.position.z - 5
-    );
-    this.spotlight.quaternion.copy(this.camera.quaternion)
-
-    // this.dirLight.target.updateMatrixWorld();
-    // this.dirLight.shadow.camera.updateProjectionMatrix();
-
+    this.raycaster.setFromCamera(this.mouse, this.camera);
     
     // Objects update
     this.ground.groundCamera.update(this.renderer, this.scene)
@@ -226,5 +200,11 @@ export default class Scene {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  onMouseMove() {
+    const e = window.event;
+    this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	  this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
   }
 }
