@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader";
@@ -27,6 +28,10 @@ export default class Scene {
     window.addEventListener("mousemove", () => {
       this.onMouseMove();
     })
+
+    window.addEventListener("mousedown", () => {
+      this.onMouseDown();
+    })
   }
 
   init() {
@@ -44,7 +49,7 @@ export default class Scene {
     // Create the THREE Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x6c9bd9);
-    this.scene.fog = new THREE.FogExp2(0x6c9bd9, 0.004);
+    this.scene.fog = new THREE.FogExp2(0x6c9bd9, 0.005);
 
     this.addEvents();
     this.setCamera();
@@ -71,7 +76,8 @@ export default class Scene {
 
     // Controls
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
+    this.controls = new PointerLockControls(this.camera, this.renderer.domElement);
+    
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 1, 0.1)
@@ -124,10 +130,10 @@ export default class Scene {
     this.dirLight.shadow.mapSize.width = 2048;
     this.dirLight.shadow.mapSize.height = 2048;
     this.dirLight.shadow.bias = -0.0001;
-    this.dirLight.shadow.camera.left = 1000;
-    this.dirLight.shadow.camera.right = -1000;
-    this.dirLight.shadow.camera.bottom = -300;
-    this.dirLight.shadow.camera.top = 300;
+    this.dirLight.shadow.camera.left = 500;
+    this.dirLight.shadow.camera.right = -500;
+    this.dirLight.shadow.camera.bottom = -100;
+    this.dirLight.shadow.camera.top = 100;
     this.dirLight.shadow.camera.far = 5000;
     this.dirLight.shadow.camera.near = 0.5;
     this.scene.add(this.dirLight)
@@ -205,6 +211,12 @@ export default class Scene {
   onMouseMove() {
     const e = window.event;
     this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-	  this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+    this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+  }
+
+  onMouseDown() {
+    // Lock the controls on click 
+    this.controls.lock();
   }
 }
