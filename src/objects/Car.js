@@ -1,6 +1,7 @@
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import * as THREE from "three";
 import * as CANNON from 'cannon'
+import { manager } from '../loadingManager'
 
 // Obj files
 const vehicle = require("../../assets/models/car_v-1.obj");
@@ -36,7 +37,7 @@ export default class Car {
     this.scene.add(this.carCamera)
 
     // Object loader
-    this.objLoader = new OBJLoader();
+    this.objLoader = new OBJLoader(manager);
     this.objLoader.load(vehicle, (obj) => {
       obj.castShadow = true;
       obj.receiveShadow = true;
