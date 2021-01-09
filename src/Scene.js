@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader";
@@ -76,7 +75,6 @@ export default class Scene {
 
     // Controls
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls = new PointerLockControls(this.camera, this.renderer.domElement);
     
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
@@ -111,9 +109,12 @@ export default class Scene {
       10000
     );
 
+    this.camera.position.set(0, 5, -80);
+
     this.currentLookPos = new THREE.Vector3()
     this.currentCamPos = new THREE.Vector3()
 
+    this.camera.lookAt(this.currentLookPos);
   }
 
   setLights() {
@@ -178,6 +179,8 @@ export default class Scene {
 
     this.currentCamPos.lerp(this.camPos, 0.2)
 
+    this.rotationSpeed = Date.now() * 0.001;
+
     this.camera.position.copy(this.currentCamPos);
     this.camera.lookAt(this.currentLookPos);
 
@@ -194,6 +197,7 @@ export default class Scene {
     // Objects update
     this.ground.groundCamera.update(this.renderer, this.scene)
     this.car.carCamera.update(this.renderer, this.scene)
+  
 
     // Controls update
     // this.controls.update();
@@ -209,14 +213,20 @@ export default class Scene {
   }
 
   onMouseMove() {
-    const e = window.event;
-    this.mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-    this.mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
+    // If mouse is locked
+    if (document.pointerLockElement === this.renderer.domElement) {
+      const e = window.event;
+      this.mouse.x += e.movementX;
+      this.mouse.y += e.movementY;
+
+      
+    }
+    
   }
 
   onMouseDown() {
-    // Lock the controls on click 
-    this.controls.lock();
+    // Lock the mouse on click 
+    this.renderer.domElement.requestPointerLock();
   }
 }
