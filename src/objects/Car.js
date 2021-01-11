@@ -147,7 +147,7 @@ export default class Car {
     this.world.addContactMaterial(this.bodyGroundContactMaterial)
 
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3))
-    this.chassisBody = new CANNON.Body({mass: 1500})
+    this.chassisBody = new CANNON.Body({mass: 1650})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position.set(0, 6, -100)
     this.chassisBody.angularVelocity.set(-0.2, 0, 0);

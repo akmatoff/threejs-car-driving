@@ -36,7 +36,7 @@ export default class Ground {
     this.groundMaterial = new CANNON.Material('groundMaterial')
     this.groundMaterial.friction = 0.3
 
-    this.groundShape = new CANNON.Plane()
+    this.groundShape = new CANNON.Box(new CANNON.Vec3(15000, 0, 15000))
     this.groundBody = new CANNON.Body({
       mass: 0, 
       shape: this.groundShape,
@@ -44,10 +44,10 @@ export default class Ground {
       position: new CANNON.Vec3(0, -2, 0),
     })
 
-    this.groundBody.quaternion.setFromAxisAngle(
-      new CANNON.Vec3(1, 0, 0),
-      -Math.PI / 2
-    );
+    // this.groundBody.quaternion.setFromAxisAngle(
+    //   new CANNON.Vec3(1, 0, 0),
+    //   -Math.PI / 2
+    // );
 
     this.ground.position.copy(this.groundBody.position)
 
