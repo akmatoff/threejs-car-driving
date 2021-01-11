@@ -52632,7 +52632,7 @@ var Car = /*#__PURE__*/function () {
       this.world.addContactMaterial(this.bodyGroundContactMaterial);
       this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3));
       this.chassisBody = new CANNON.Body({
-        mass: 1500
+        mass: 1650
       });
       this.chassisBody.addShape(this.chassisShape);
       this.chassisBody.position.set(0, 6, -100);
@@ -52850,14 +52850,17 @@ var Ground = /*#__PURE__*/function () {
       // Create ground plane physics
       this.groundMaterial = new CANNON.Material('groundMaterial');
       this.groundMaterial.friction = 0.3;
-      this.groundShape = new CANNON.Plane();
+      this.groundShape = new CANNON.Box(new CANNON.Vec3(15000, 0, 15000));
       this.groundBody = new CANNON.Body({
         mass: 0,
         shape: this.groundShape,
         material: this.groundMaterial,
         position: new CANNON.Vec3(0, -2, 0)
-      });
-      this.groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+      }); // this.groundBody.quaternion.setFromAxisAngle(
+      //   new CANNON.Vec3(1, 0, 0),
+      //   -Math.PI / 2
+      // );
+
       this.ground.position.copy(this.groundBody.position);
       this.world.add(this.groundBody);
     }
@@ -52967,7 +52970,7 @@ var Scene = /*#__PURE__*/function () {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 0.8;
+      this.renderer.toneMappingExposure = 0.9;
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.setAnimationLoop(function () {
@@ -53001,13 +53004,14 @@ var Scene = /*#__PURE__*/function () {
       this.camera.position.set(0, 5, -80);
       this.currentLookPos = new THREE.Vector3();
       this.currentCamPos = new THREE.Vector3();
+      this.rotationSpeed = 0.05;
       this.camera.lookAt(this.currentLookPos);
     }
   }, {
     key: "setLights",
     value: function setLights() {
       // Hemisphere light
-      this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.5);
+      this.hemiLight = new THREE.HemisphereLight(0xffeeb1, 0x080820, 0.3);
       this.hemiLight.position.set(0, 0.5, 0);
       this.scene.add(this.hemiLight); // Directional light
 
@@ -53049,10 +53053,9 @@ var Scene = /*#__PURE__*/function () {
       this.lookPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y, this.car.carBody.position.z); // this.lookPos.applyQuaternion(this.car.carBody.quaternion)
       // this.lookPos.add(this.car.carBody.position)
 
-      this.currentLookPos.lerp(this.lookPos, 0.2);
+      this.currentLookPos.lerp(this.lookPos, 0.15);
       this.camPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y + 3, this.car.carBody.position.z + 18);
-      this.currentCamPos.lerp(this.camPos, 0.2);
-      this.rotationSpeed = Date.now() * 0.001;
+      this.currentCamPos.lerp(this.camPos, 0.15);
       this.camera.position.copy(this.currentCamPos);
       this.camera.lookAt(this.currentLookPos);
       if (this.camera.position.y < 2) this.camera.position.y = 2;
@@ -53084,8 +53087,8 @@ var Scene = /*#__PURE__*/function () {
       // If mouse is locked
       if (document.pointerLockElement === this.renderer.domElement) {
         var e = window.event;
-        this.mouse.x += e.movementX;
-        this.mouse.y += e.movementY;
+        this.currentCamPos.x = this.currentCamPos.x + -Math.cos(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
+        this.currentCamPos.z = this.currentCamPos.z + Math.sin(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
       }
     }
   }, {
@@ -53210,7 +53213,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50975" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55456" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
