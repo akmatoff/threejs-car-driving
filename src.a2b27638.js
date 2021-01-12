@@ -53005,6 +53005,7 @@ var Scene = /*#__PURE__*/function () {
       this.currentLookPos = new THREE.Vector3();
       this.currentCamPos = new THREE.Vector3();
       this.rotationSpeed = 0.05;
+      this.cameraOffset = new THREE.Vector3();
       this.camera.lookAt(this.currentLookPos);
     }
   }, {
@@ -53050,14 +53051,18 @@ var Scene = /*#__PURE__*/function () {
   }, {
     key: "updateCamera",
     value: function updateCamera() {
-      this.lookPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y, this.car.carBody.position.z); // this.lookPos.applyQuaternion(this.car.carBody.quaternion)
-      // this.lookPos.add(this.car.carBody.position)
+      // Position which the camera looks at
+      this.lookPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y, this.car.carBody.position.z); // Make smoother following of the position
 
-      this.currentLookPos.lerp(this.lookPos, 0.15);
-      this.camPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y + 3, this.car.carBody.position.z + 18);
-      this.currentCamPos.lerp(this.camPos, 0.15);
+      this.currentLookPos.lerp(this.lookPos, 0.15); // initial position of the camera 
+
+      this.camPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y + 3, this.car.carBody.position.z + 18); // Add camera offset before adding inital camera position, which is needed to add additional position to rotate the camera
+
+      this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.15); // Set the camera's position to the current camera position
+
       this.camera.position.copy(this.currentCamPos);
-      this.camera.lookAt(this.currentLookPos);
+      this.camera.lookAt(this.currentLookPos); // Prevent the camera from going lower than ground
+
       if (this.camera.position.y < 2) this.camera.position.y = 2;
     }
   }, {
@@ -53087,8 +53092,8 @@ var Scene = /*#__PURE__*/function () {
       // If mouse is locked
       if (document.pointerLockElement === this.renderer.domElement) {
         var e = window.event;
-        this.currentCamPos.x = this.currentCamPos.x + -Math.cos(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
-        this.currentCamPos.z = this.currentCamPos.z + Math.sin(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
+        this.cameraOffset.x = this.camera.position.x * Math.cos(this.rotationSpeed) + e.movementX * 0.2;
+        this.cameraOffset.z = this.camera.position.z * Math.sin(this.rotationSpeed) + e.movementX * 0.2;
       }
     }
   }, {
@@ -53213,7 +53218,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55456" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60595" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
