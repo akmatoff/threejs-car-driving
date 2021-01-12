@@ -115,6 +115,7 @@ export default class Scene {
     this.currentCamPos = new THREE.Vector3()
 
     this.rotationSpeed = 0.05;
+    this.cameraOffset = new THREE.Vector3()
 
     this.camera.lookAt(this.currentLookPos);
   }
@@ -162,29 +163,32 @@ export default class Scene {
   }
 
   updateCamera() {
+    // Position which the camera looks at
     this.lookPos = new THREE.Vector3(
       this.car.carBody.position.x,
       this.car.carBody.position.y,
       this.car.carBody.position.z
     );
     
-    // this.lookPos.applyQuaternion(this.car.carBody.quaternion)
-    // this.lookPos.add(this.car.carBody.position)
-
+    // Make smoother following of the position
     this.currentLookPos.lerp(this.lookPos, 0.15)
-
+    
+    // initial position of the camera 
     this.camPos = new THREE.Vector3(
       this.car.carBody.position.x,
       this.car.carBody.position.y + 3,
       this.car.carBody.position.z + 18
     )
     
-
-    this.currentCamPos.lerp(this.camPos, 0.15)
-
+    // Add camera offset before adding inital camera position, which is needed to add additional position to rotate the camera
+    this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.15)
+    
+    // Set the camera's position to the current camera position
     this.camera.position.copy(this.currentCamPos);
+    
     this.camera.lookAt(this.currentLookPos);
-
+    
+    // Prevent the camera from going lower than ground
     if (this.camera.position.y < 2) this.camera.position.y = 2
 
   }
@@ -219,8 +223,8 @@ export default class Scene {
     if (document.pointerLockElement === this.renderer.domElement) {
       const e = window.event;
 
-      this.currentCamPos.x = this.currentCamPos.x + -Math.cos(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
-      this.currentCamPos.z = this.currentCamPos.z + Math.sin(this.rotationSpeed * Math.PI) * e.movementX * 0.2;
+      this.cameraOffset.x = (this.camera.position.x * Math.cos(this.rotationSpeed)) + (e.movementX * 0.2);
+      this.cameraOffset.z = (this.camera.position.z * Math.sin(this.rotationSpeed)) + (e.movementX * 0.2);
 
     } 
     
