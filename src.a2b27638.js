@@ -52482,8 +52482,8 @@ var wheel = require("../../assets/models/wheel.obj");
 var wheelRotated = require("../../assets/models/wheel_rotated.obj");
 
 var Car = /*#__PURE__*/function () {
-  function Car(scene, world) {
-    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+  function Car(scene, world, position, color) {
+    var _ref = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {},
         _ref$materials = _ref.materials,
         materials = _ref$materials === void 0 ? [] : _ref$materials;
 
@@ -52491,6 +52491,8 @@ var Car = /*#__PURE__*/function () {
 
     this.scene = scene;
     this.world = world;
+    this.position = position;
+    this.color = color;
     this.materials = materials;
     this.wheelObjects = []; // Group for car (body and wheels)
 
@@ -52528,7 +52530,7 @@ var Car = /*#__PURE__*/function () {
         });
         _this.engineMat.shininess = 250;
         _this.bodyMat = new THREE.MeshPhongMaterial({
-          color: 0xe04000,
+          color: _this.color,
           // envMap: this.carCamera.renderTarget.texture, 
           reflectivity: 1
         });
@@ -52630,13 +52632,13 @@ var Car = /*#__PURE__*/function () {
       });
       this.world.addContactMaterial(this.wheelGroundContactMaterial);
       this.world.addContactMaterial(this.bodyGroundContactMaterial);
-      this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3));
+      this.chassisShape = new CANNON.Box(new CANNON.Vec3(3.0, 4.5, 6.0));
       this.chassisBody = new CANNON.Body({
         mass: 1650
       });
       this.chassisBody.addShape(this.chassisShape);
-      this.chassisBody.position.set(0, 6, -100);
-      this.chassisBody.angularVelocity.set(-0.2, 0, 0); // Wheel options
+      this.chassisBody.position = this.position; // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 2)
+      // Wheel options
 
       this.options = {
         radius: 3.75,
@@ -52671,7 +52673,7 @@ var Car = /*#__PURE__*/function () {
       this.raycastVehicle.addToWorld(this.world);
       this.wheelBodies = [];
       this.raycastVehicle.wheelInfos.forEach(function (wheel) {
-        _this3.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 60);
+        _this3.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 1, 60);
         _this3.wheelBody = new CANNON.Body({
           mass: 1,
           material: _this3.wheelMaterial
@@ -52774,7 +52776,6 @@ var Car = /*#__PURE__*/function () {
     value: function updateCar() {
       this.carBody.position.copy(this.chassisBody.position);
       this.carBody.quaternion.copy(this.chassisBody.quaternion);
-      this.carCamera.position.copy(this.car.position);
     }
   }, {
     key: "updatePhysics",
@@ -52976,8 +52977,6 @@ var Scene = /*#__PURE__*/function () {
       this.renderer.setAnimationLoop(function () {
         _this2.render();
       }); // Render loop
-      // Controls
-      // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       // Passes
 
       this.renderPass = new _RenderPass.RenderPass(this.scene, this.camera);
@@ -53004,8 +53003,8 @@ var Scene = /*#__PURE__*/function () {
       this.camera.position.set(0, 5, -80);
       this.currentLookPos = new THREE.Vector3();
       this.currentCamPos = new THREE.Vector3();
-      this.rotationSpeed = 0.05;
       this.cameraOffset = new THREE.Vector3();
+      this.rotationSpeed = 0.05;
       this.camera.lookAt(this.currentLookPos);
     }
   }, {
@@ -53025,8 +53024,8 @@ var Scene = /*#__PURE__*/function () {
       this.dirLight.shadow.bias = -0.0001;
       this.dirLight.shadow.camera.left = 500;
       this.dirLight.shadow.camera.right = -500;
-      this.dirLight.shadow.camera.bottom = -100;
-      this.dirLight.shadow.camera.top = 100;
+      this.dirLight.shadow.camera.bottom = -500;
+      this.dirLight.shadow.camera.top = 500;
       this.dirLight.shadow.camera.far = 5000;
       this.dirLight.shadow.camera.near = 0.5;
       this.scene.add(this.dirLight);
@@ -53038,7 +53037,10 @@ var Scene = /*#__PURE__*/function () {
       // Add ground to the scene and physics world
       this.ground = new _Ground.default(this.scene, this.world); // New instance of the car
 
-      this.car = new _Car.default(this.scene, this.world, {
+      this.car = new _Car.default(this.scene, this.world, new CANNON.Vec3(0, 16, 0), 0xe04000, {
+        materials: [this.ground.groundMaterial]
+      });
+      this.car2 = new _Car.default(this.scene, this.world, new CANNON.Vec3(-10, 16, 0), 0xe55be, {
         materials: [this.ground.groundMaterial]
       });
     }
@@ -53046,19 +53048,20 @@ var Scene = /*#__PURE__*/function () {
     key: "updatePhysics",
     value: function updatePhysics() {
       this.car.updatePhysics();
+      this.car2.updatePhysics();
       this.world.step(this.timeStep);
     }
   }, {
     key: "updateCamera",
     value: function updateCamera() {
       // Position which the camera looks at
-      this.lookPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y, this.car.carBody.position.z); // Make smoother following of the position
+      this.lookPos = new THREE.Vector3(this.car2.carBody.position.x, this.car2.carBody.position.y, this.car2.carBody.position.z); // Make smoother following of the position
 
-      this.currentLookPos.lerp(this.lookPos, 0.15); // initial position of the camera 
+      this.currentLookPos.lerp(this.lookPos, 0.1); // initial position of the camera 
 
-      this.camPos = new THREE.Vector3(this.car.carBody.position.x, this.car.carBody.position.y + 3, this.car.carBody.position.z + 18); // Add camera offset before adding inital camera position, which is needed to add additional position to rotate the camera
+      this.camPos = new THREE.Vector3(this.car2.carBody.position.x, this.car2.carBody.position.y + 3, this.car2.carBody.position.z + 18); // Add camera offset before adding inital camera position, which is needed to add additional position to rotate the camera
 
-      this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.15); // Set the camera's position to the current camera position
+      this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.1); // Set the camera's position to the current camera position
 
       this.camera.position.copy(this.currentCamPos);
       this.camera.lookAt(this.currentLookPos); // Prevent the camera from going lower than ground
@@ -53073,10 +53076,7 @@ var Scene = /*#__PURE__*/function () {
       this.raycaster.setFromCamera(this.mouse, this.camera); // Objects update
 
       this.ground.groundCamera.update(this.renderer, this.scene);
-      this.car.carCamera.update(this.renderer, this.scene); // Controls update
-      // this.controls.update();
-      // this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
-
+      this.car.carCamera.update(this.renderer, this.scene);
       this.composer.render(this.clock.getDelta());
     }
   }, {
@@ -53092,9 +53092,9 @@ var Scene = /*#__PURE__*/function () {
       // If mouse is locked
       if (document.pointerLockElement === this.renderer.domElement) {
         var e = window.event;
-        this.cameraOffset.x = this.camera.position.x * Math.cos(this.rotationSpeed) + e.movementX * 0.2;
-        this.cameraOffset.z = this.camera.position.z * Math.sin(this.rotationSpeed) + e.movementX * 0.2;
       }
+
+      ;
     }
   }, {
     key: "onMouseDown",
@@ -53218,7 +53218,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60595" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64883" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
