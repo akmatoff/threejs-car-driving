@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import * as CANNON from "cannon";
-// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader";
@@ -72,9 +71,6 @@ export default class Scene {
     this.renderer.setAnimationLoop(() => {
       this.render();
     }); // Render loop
-
-    // Controls
-    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     
     // Passes
     this.renderPass = new RenderPass(this.scene, this.camera);
@@ -113,9 +109,9 @@ export default class Scene {
 
     this.currentLookPos = new THREE.Vector3()
     this.currentCamPos = new THREE.Vector3()
+    this.cameraOffset = new THREE.Vector3()
 
     this.rotationSpeed = 0.05;
-    this.cameraOffset = new THREE.Vector3()
 
     this.camera.lookAt(this.currentLookPos);
   }
@@ -136,8 +132,8 @@ export default class Scene {
     this.dirLight.shadow.bias = -0.0001;
     this.dirLight.shadow.camera.left = 500;
     this.dirLight.shadow.camera.right = -500;
-    this.dirLight.shadow.camera.bottom = -100;
-    this.dirLight.shadow.camera.top = 100;
+    this.dirLight.shadow.camera.bottom = -500;
+    this.dirLight.shadow.camera.top = 500;
     this.dirLight.shadow.camera.far = 5000;
     this.dirLight.shadow.camera.near = 0.5;
     this.scene.add(this.dirLight)
@@ -152,36 +148,41 @@ export default class Scene {
     this.ground = new Ground(this.scene, this.world);
 
     // New instance of the car
-    this.car = new Car(this.scene, this.world, {
+    this.car = new Car(this.scene, this.world, new CANNON.Vec3(0, 16, 0), 0xe04000, {
       materials: [this.ground.groundMaterial]
     });
+
+    this.car2 = new Car(this.scene, this.world, new CANNON.Vec3(-10, 16, 0), 0xe55be, {
+      materials: [this.ground.groundMaterial]
+    })
   }
 
   updatePhysics() {
     this.car.updatePhysics()
+    this.car2.updatePhysics()
     this.world.step(this.timeStep);
   }
 
   updateCamera() {
     // Position which the camera looks at
     this.lookPos = new THREE.Vector3(
-      this.car.carBody.position.x,
-      this.car.carBody.position.y,
-      this.car.carBody.position.z
+      this.car2.carBody.position.x,
+      this.car2.carBody.position.y,
+      this.car2.carBody.position.z
     );
     
     // Make smoother following of the position
-    this.currentLookPos.lerp(this.lookPos, 0.15)
+    this.currentLookPos.lerp(this.lookPos, 0.1)
     
     // initial position of the camera 
     this.camPos = new THREE.Vector3(
-      this.car.carBody.position.x,
-      this.car.carBody.position.y + 3,
-      this.car.carBody.position.z + 18
+      this.car2.carBody.position.x,
+      this.car2.carBody.position.y + 3,
+      this.car2.carBody.position.z + 18
     )
     
     // Add camera offset before adding inital camera position, which is needed to add additional position to rotate the camera
-    this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.15)
+    this.currentCamPos.lerp(this.camPos.add(this.cameraOffset), 0.1)
     
     // Set the camera's position to the current camera position
     this.camera.position.copy(this.currentCamPos);
@@ -202,11 +203,6 @@ export default class Scene {
     // Objects update
     this.ground.groundCamera.update(this.renderer, this.scene)
     this.car.carCamera.update(this.renderer, this.scene)
-  
-
-    // Controls update
-    // this.controls.update();
-    // this.controls.target.copy(this.car.carBody.position) // Set the center of the control to the car
 
     this.composer.render(this.clock.getDelta());
   }
@@ -223,10 +219,10 @@ export default class Scene {
     if (document.pointerLockElement === this.renderer.domElement) {
       const e = window.event;
 
-      this.cameraOffset.x = (this.camera.position.x * Math.cos(this.rotationSpeed)) + (e.movementX * 0.2);
-      this.cameraOffset.z = (this.camera.position.z * Math.sin(this.rotationSpeed)) + (e.movementX * 0.2);
+      
 
     } 
+;
     
   }
 

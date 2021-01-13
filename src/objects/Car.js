@@ -9,9 +9,11 @@ const wheel = require("../../assets/models/wheel.obj");
 const wheelRotated = require("../../assets/models/wheel_rotated.obj");
 
 export default class Car {
-  constructor(scene, world, {materials = []} = {}) {
+  constructor(scene, world, position, color, {materials = []} = {}) {
     this.scene = scene;
     this.world = world
+    this.position = position
+    this.color = color
     this.materials = materials
 
     this.wheelObjects = [];
@@ -46,7 +48,7 @@ export default class Car {
       this.engineMat = new THREE.MeshPhongMaterial({ color: 0x111111 });
       this.engineMat.shininess = 250;
       this.bodyMat = new THREE.MeshPhongMaterial({ 
-        color: 0xe04000, 
+        color: this.color, 
         // envMap: this.carCamera.renderTarget.texture, 
         reflectivity: 1 });
       this.bodyMat.shininess = 200;
@@ -146,11 +148,11 @@ export default class Car {
     this.world.addContactMaterial(this.wheelGroundContactMaterial)
     this.world.addContactMaterial(this.bodyGroundContactMaterial)
 
-    this.chassisShape = new CANNON.Box(new CANNON.Vec3(4.5, 4.5, 8.3))
+    this.chassisShape = new CANNON.Box(new CANNON.Vec3(3.0, 4.5, 6.0))
     this.chassisBody = new CANNON.Body({mass: 1650})
     this.chassisBody.addShape(this.chassisShape)
-    this.chassisBody.position.set(0, 6, -100)
-    this.chassisBody.angularVelocity.set(-0.2, 0, 0);
+    this.chassisBody.position = this.position;
+    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 2)
 
     // Wheel options
     this.options = {
@@ -189,7 +191,7 @@ export default class Car {
     this.wheelBodies = [];
 
     this.raycastVehicle.wheelInfos.forEach((wheel) => {
-      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 0.2, 60);
+      this.cylinderShape = new CANNON.Cylinder(wheel.radius, wheel.radius, wheel.radius - 1, 60);
       this.wheelBody = new CANNON.Body({
         mass: 1, 
         material: this.wheelMaterial,
@@ -283,8 +285,6 @@ export default class Car {
   updateCar() {
     this.carBody.position.copy(this.chassisBody.position)
     this.carBody.quaternion.copy(this.chassisBody.quaternion)    
-
-    this.carCamera.position.copy(this.car.position)
 
   }
 
