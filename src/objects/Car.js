@@ -145,8 +145,8 @@ export default class Car {
       contactEquationStiffness: 10000
     })
 
-    this.world.addContactMaterial(this.wheelGroundContactMaterial)
-    this.world.addContactMaterial(this.bodyGroundContactMaterial)
+    // this.world.addContactMaterial(this.wheelGroundContactMaterial)
+    // this.world.addContactMaterial(this.bodyGroundContactMaterial)
 
     this.chassisShape = new CANNON.Box(new CANNON.Vec3(3.0, 4.5, 6.0))
     this.chassisBody = new CANNON.Body({mass: 1650})
@@ -215,62 +215,10 @@ export default class Car {
           wheelBody.quaternion.copy(t.quaternion);
       }
     });
-
-    // Vehicle handler
-    this.maxSteerValue = 0.4;
-    this.maxForce = 2800;
-    this.brakeForce = 300;
-
-    document.onkeydown = () => this.handler()
-
-    document.onkeyup = () => this.handler()
     
   }
 
-  handler() {
-
-    const e = window.event;
-    var up = (e.type === 'keyup');
-
-    if (!up && e.type !== 'keydown') {
-      return;
-    }
-
-    this.raycastVehicle.setBrake(0, 0);
-    this.raycastVehicle.setBrake(0, 1);
-    this.raycastVehicle.setBrake(0, 2);
-    this.raycastVehicle.setBrake(0, 3);
-
-    switch (e.keyCode) {
-      
-      case 87: // W
-        this.raycastVehicle.applyEngineForce(up ? 0 : this.maxForce, 0);
-        this.raycastVehicle.applyEngineForce(up ? 0 : this.maxForce, 1);
-        break;
-      
-      case 83: // S
-        this.raycastVehicle.applyEngineForce(up ? 0 : -this.maxForce, 0);
-        this.raycastVehicle.applyEngineForce(up ? 0 : -this.maxForce, 1);
-        break;
-
-      case 32: // Spacebar
-        this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 0);
-        this.raycastVehicle.setBrake(up ? 0 : this.brakeForce, 1);
-        break;
-
-      case 68: // D
-        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 3);
-        this.raycastVehicle.setSteeringValue(up ? 0 : -this.maxSteerValue, 1);
-        break;
   
-      case 65: // A
-        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 3);
-        this.raycastVehicle.setSteeringValue(up ? 0 : this.maxSteerValue, 1);
-        break;
-
-    }
-    
-  }
 
   updateWheels() {
     let i = 0;
