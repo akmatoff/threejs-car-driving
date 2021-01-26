@@ -4,9 +4,9 @@ import * as CANNON from 'cannon'
 import { manager } from '../loadingManager'
 
 // Obj files
-const vehicle = require("../../assets/models/car_v-1.obj");
-const wheel = require("../../assets/models/wheel.obj");
-const wheelRotated = require("../../assets/models/wheel_rotated.obj");
+const vehicle = require("../../assets/models/low-car.obj");
+const wheel = require("../../assets/models/left-wheel.obj");
+const wheelRotated = require("../../assets/models/right-wheel.obj");
 
 export default class Car {
   constructor(scene, world, position, color, {materials = []} = {}) {
@@ -152,7 +152,7 @@ export default class Car {
     this.chassisBody = new CANNON.Body({mass: 1650})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position = this.position;
-    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 2)
+    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2)
 
     // Wheel options
     this.options = {
@@ -217,8 +217,6 @@ export default class Car {
     });
     
   }
-
-  
 
   updateWheels() {
     let i = 0;
