@@ -4,9 +4,9 @@ import * as CANNON from 'cannon'
 import { manager } from '../loadingManager'
 
 // Obj files
-const vehicle = require("../../assets/models/low-car.obj");
-const wheel = require("../../assets/models/left-wheel.obj");
-const wheelRotated = require("../../assets/models/right-wheel.obj");
+const vehicle = require("../../assets/models/car.obj");
+const wheel = require("../../assets/models/right.obj");
+const wheelRotated = require("../../assets/models/left.obj");
 
 export default class Car {
   constructor(scene, world, position, color, {materials = []} = {}) {
