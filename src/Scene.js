@@ -9,6 +9,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import Car from "./objects/Car";
 import Ground from "./objects/Ground";
 import { InputManager } from './InputManager'
+import { SkyShader } from './shaders/skyShader'
 
 export default class Scene {
   constructor() {
@@ -87,10 +88,12 @@ export default class Scene {
     this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 
     this.gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+    this.skyShaderPass = new ShaderPass(SkyShader)
 
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderPass);
+    // this.composer.addPass(this.skyShaderPass)
     this.composer.addPass(this.gammaCorrectionPass);
     this.composer.addPass(this.unrealBloomPass);
     this.composer.addPass(this.fxaaPass);
