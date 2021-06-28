@@ -8,8 +8,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import Car from "./objects/Car";
 import Ground from "./objects/Ground";
-import { InputManager } from "./InputManager";
-import { SkyShader } from "./shaders/skyShader";
+import { InputManager } from "./inputManager";
 
 export default class Scene {
   constructor() {
@@ -63,7 +62,7 @@ export default class Scene {
 
   setRenderer() {
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true
+      antialias: true,
     });
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -95,12 +94,11 @@ export default class Scene {
       1 / (window.innerHeight * pixelRatio);
 
     this.gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
-    this.skyShaderPass = new ShaderPass(SkyShader);
 
     // Composer
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(this.renderPass);
-    // this.composer.addPass(this.skyShaderPass)
+
     this.composer.addPass(this.gammaCorrectionPass);
     this.composer.addPass(this.unrealBloomPass);
     this.composer.addPass(this.fxaaPass);
@@ -164,7 +162,7 @@ export default class Scene {
       new CANNON.Vec3(0, 16, 0),
       0xe04000,
       {
-        materials: [this.ground.groundMaterial]
+        materials: [this.ground.groundMaterial],
       }
     );
 
@@ -174,7 +172,7 @@ export default class Scene {
       new CANNON.Vec3(-10, 16, 0),
       0x1b1b1b,
       {
-        materials: [this.ground.groundMaterial]
+        materials: [this.ground.groundMaterial],
       }
     );
   }
@@ -245,6 +243,8 @@ export default class Scene {
     // If mouse is locked
     if (document.pointerLockElement === this.renderer.domElement) {
       const e = window.event;
+      this.cameraOffset.x = 20 + Math.sin(e.movementX) * e.movementX;
+      this.cameraOffset.z = 20 + Math.cos(e.movementX) * e.movementX;
     }
   }
 

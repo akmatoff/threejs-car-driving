@@ -152,7 +152,7 @@ export default class Car {
     this.chassisBody = new CANNON.Body({mass: 1650})
     this.chassisBody.addShape(this.chassisShape)
     this.chassisBody.position = this.position;
-    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2)
+    // this.chassisBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 0, 1), Math.PI / 2)
 
     // Wheel options
     this.options = {
@@ -202,7 +202,7 @@ export default class Car {
       
       this.wheelBody.addShape(this.cylinderShape, new CANNON.Vec3(), q);
       this.wheelBodies.push(this.wheelBody);
-      this.world.addBody(this.wheelBody);
+      // this.world.addBody(this.wheelBody);
     })
 
     // Update wheels
